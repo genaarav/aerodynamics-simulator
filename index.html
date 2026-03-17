@@ -578,6 +578,7 @@ a{color:inherit;text-decoration:none}
   <div class="lb-actions">
     <button class="btn btn1" onclick="go(4)">Take the challenge &#10132;</button>
     <button class="btn btn2" onclick="exportLB()">&#128203; Copy results</button>
+    <button class="btn btn2" onclick="refreshLB()" title="Refresh scores">&#128260; Refresh</button>
     <button class="btn btn2 admin-btn" id="editBtn" style="display:none" onclick="toggleEditMode()">&#9998; Edit entries</button>
     <button class="btn btn2 admin-btn" id="resetBtn" style="display:none" onclick="confirmReset()">&#128465; Reset all</button>
   </div>
@@ -1035,7 +1036,7 @@ function startAcademy(){
   acName=inp.value.trim();
   if(!acName){inp.style.borderColor='var(--red)';inp.focus();return}
   // Check for duplicate name
-  const existing=getScores();
+  const existing=getCachedScores();
   if(existing.some(s=>s.name.toLowerCase()===acName.toLowerCase())){
     inp.style.borderColor='var(--red)';
     // Show error message
@@ -1418,55 +1419,104 @@ function nextPlayer(){
   document.getElementById('playerName').focus();
 }
 
-// ===== LEADERBOARD (localStorage) =====
-function getScores(){
+// ===== LEADERBOARD (Google Sheets backend) =====
+const SHEET_API='https://script.google.com/macros/s/AKfycbwwCoqSQpXJMd-oYlb4Hssb8agoUU2i4Fm_j-zzjFGWAb8saLKJoLhKGrXIrL20l0xk/exec';
+
+function getCachedScores(){
   try{return JSON.parse(localStorage.getItem('flight_scores')||'[]')}catch(e){return[]}
 }
-function saveScore(name,score,correct,total,rank){
-  const scores=getScores();
-  scores.push({name,score,correct,total,rank:rank||'',time:Date.now(),date:new Date().toLocaleDateString('en-GB')});
-  scores.sort((a,b)=>b.score-a.score);
-  localStorage.setItem('flight_scores',JSON.stringify(scores));
+function cacheScores(scores){
+  try{localStorage.setItem('flight_scores',JSON.stringify(scores))}catch(e){}
 }
-function renderLB(){
-  const scores=getScores();
+
+async function fetchScores(){
+  try{
+    const r=await fetch(SHEET_API);
+    if(!r.ok)throw new Error('Sheet API error');
+    const scores=await r.json();
+    scores.sort((a,b)=>b.score-a.score);
+    cacheScores(scores);
+    return scores;
+  }catch(e){
+    console.warn('Fetch scores failed, using cache:',e);
+    return getCachedScores();
+  }
+}
+
+function saveScore(name,score,correct,total,rank){
+  const entry={name,score,correct,total,rank:rank||'',date:new Date().toLocaleDateString('en-GB')};
+  // Save to local cache immediately for instant feedback
+  const cached=getCachedScores();
+  cached.push(entry);
+  cached.sort((a,b)=>b.score-a.score);
+  cacheScores(cached);
+  // POST to Google Sheets in background
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(entry)}).catch(e=>console.warn('Sheet POST failed:',e));
+}
+
+function renderLBFromData(scores){
   const card=document.getElementById('lbCard');
   if(!scores.length){card.innerHTML='<div class="lb-empty">No scores yet! Be the first to take the Pilot Academy.</div>';return}
-
-  const medals=['🥇','🥈','🥉'];
+  const medals=['\u{1F947}','\u{1F948}','\u{1F949}'];
   const today=new Date().toLocaleDateString('en-GB');
   const todayScores=scores.filter(s=>s.date===today);
   const displayScores=todayScores.length?todayScores:scores;
   const label=todayScores.length?'Today\'s scores':'All-time scores';
   const editing=window._lbEditMode;
-
   let html=`<div style="font-size:12px;color:var(--txt3);margin-bottom:8px;font-weight:600">${label} &mdash; ${displayScores.length} ${displayScores.length===1?'entry':'entries'}${editing?' <span style="color:var(--red)">(editing)</span>':''}</div>`;
   html+=`<table><tr>${editing?'<th style="width:36px"></th>':''}<th style="width:40px">#</th><th>Pilot</th><th style="text-align:right">Score</th><th style="text-align:right">Rank</th><th style="text-align:right;width:80px">Date</th></tr>`;
   displayScores.forEach((s,i)=>{
     const medal=i<3?`<span class="medal">${medals[i]}</span>`:`<span class="rank">${i+1}</span>`;
     const rk=s.rank||'';
     const rkIcon=rk==='Gold Wings'?'\u{1F3C6} ':rk==='Silver Wings'?'\u{1F948} ':rk==='Bronze Wings'?'\u{1F949} ':'';
-    const delBtn=editing?`<td><button onclick="deleteEntry('${esc(s.name)}')" style="background:var(--red);color:#fff;border:none;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">✕</button></td>`:'';
-    html+=`<tr>${delBtn}<td>${medal}</td><td style="font-weight:600">${esc(s.name)}</td><td style="text-align:right" class="sc">${s.score}</td><td style="text-align:right;font-size:11px;color:var(--txt3)">${rkIcon}${rk}</td><td style="text-align:right" class="pct">${s.date||'—'}</td></tr>`;
+    const delBtn=editing?`<td><button onclick="deleteEntry('${esc(s.name)}')" style="background:var(--red);color:#fff;border:none;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">\u2715</button></td>`:'';
+    html+=`<tr>${delBtn}<td>${medal}</td><td style="font-weight:600">${esc(s.name)}</td><td style="text-align:right" class="sc">${s.score}</td><td style="text-align:right;font-size:11px;color:var(--txt3)">${rkIcon}${rk}</td><td style="text-align:right" class="pct">${s.date||'\u2014'}</td></tr>`;
   });
   html+=`</table>`;
   card.innerHTML=html;
 }
 function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
+function renderLB(){
+  // Show cached data instantly
+  renderLBFromData(getCachedScores());
+  // Then fetch fresh data from Sheets and re-render
+  fetchScores().then(scores=>renderLBFromData(scores));
+}
+
+function refreshLB(){
+  const card=document.getElementById('lbCard');
+  card.innerHTML='<div class="lb-empty" style="opacity:.6">Loading scores...</div>';
+  fetchScores().then(scores=>renderLBFromData(scores));
+}
+
+function exportLB(){
+  const scores=getCachedScores();
+  if(!scores.length){alert('No scores to copy!');return}
+  const today=new Date().toLocaleDateString('en-GB');
+  let text=`\u2708\uFE0F PILOT TRAINING ACADEMY LEADERBOARD \u2014 ${today}\n${'\u2550'.repeat(44)}\n`;
+  const medals=['\u{1F947}','\u{1F948}','\u{1F949}'];
+  scores.forEach((s,i)=>{
+    const m=i<3?medals[i]:`#${i+1}`;
+    text+=`${m} ${s.name} \u2014 ${s.score} pts (${s.correct}/${s.total} correct)\n`;
+  });
+  text+=`${'\u2550'.repeat(44)}\nGenerated from aaravb.com`;
+  navigator.clipboard.writeText(text).then(()=>alert('Leaderboard copied to clipboard! Paste it anywhere to share.')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Copied!');
+  });
+}
 function deleteEntry(name){
   if(!confirm('Delete entry for "'+name+'"? This cannot be undone.'))return;
-  let scores=getScores();
+  let scores=getCachedScores();
   scores=scores.filter(s=>s.name!==name);
-  localStorage.setItem('flight_scores',JSON.stringify(scores));
-  renderLB();
-  // If no scores left, exit edit mode
+  cacheScores(scores);
+  renderLBFromData(scores);
   if(!scores.length)hideAdminButtons();
 }
 
 function toggleEditMode(){
   window._lbEditMode=!window._lbEditMode;
-  renderLB();
+  renderLBFromData(getCachedScores());
   if(!window._lbEditMode)hideAdminButtons();
 }
 
@@ -1475,7 +1525,7 @@ function confirmReset(){
   if(!confirm('Are you really sure? Every entry will be permanently deleted.'))return;
   localStorage.removeItem('flight_scores');
   window._lbEditMode=false;
-  renderLB();
+  renderLBFromData([]);
   hideAdminButtons();
 }
 
@@ -1484,22 +1534,6 @@ function hideAdminButtons(){
   document.querySelectorAll('.admin-btn').forEach(b=>b.style.display='none');
 }
 
-function exportLB(){
-  const scores=getScores();
-  if(!scores.length){alert('No scores to copy!');return}
-  const today=new Date().toLocaleDateString('en-GB');
-  let text=`✈️ PILOT TRAINING ACADEMY LEADERBOARD — ${today}\n${'═'.repeat(44)}\n`;
-  const medals=['🥇','🥈','🥉'];
-  scores.forEach((s,i)=>{
-    const m=i<3?medals[i]:`#${i+1}`;
-    text+=`${m} ${s.name} — ${s.score} pts (${s.correct}/${s.total} correct)\n`;
-  });
-  text+=`${'═'.repeat(44)}\nGenerated from aaravb.com`;
-  navigator.clipboard.writeText(text).then(()=>alert('Leaderboard copied to clipboard! Paste it anywhere to share.')).catch(()=>{
-    // Fallback
-    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Copied!');
-  });
-}
 // Init leaderboard on load
 try{renderLB()}catch(e){console.log('LB init skipped')}
 
@@ -1510,7 +1544,7 @@ document.addEventListener('keydown',function(e){
     const inp=document.getElementById('playerName');
     if(!inp.value.trim()){
       // Generate unique random name
-      const existing=getScores().map(s=>s.name.toLowerCase());
+      const existing=getCachedScores().map(s=>s.name.toLowerCase());
       let name;
       do{name='Pilot '+Math.floor(Math.random()*900+100)}while(existing.includes(name.toLowerCase()));
       inp.value=name;
