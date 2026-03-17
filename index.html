@@ -1420,7 +1420,7 @@ function nextPlayer(){
 }
 
 // ===== LEADERBOARD (Google Sheets backend) =====
-const SHEET_API='https://script.google.com/macros/s/AKfycbzELvOzZCrd1cBC2raZpCODySV2KGA_7uHoxzn_Jgpu2xlvK7SqUeUoEihtXyCpNYsU/exec';
+const SHEET_API='https://script.google.com/macros/s/AKfycbwT4rgMv7-Oap_TCXjVTkmNR8iLWGkyzc1NPNcB1FqbqqO6BiQ3Gx_4N2uaWhg9Zb09/exec';
 
 function getCachedScores(){
   try{return JSON.parse(localStorage.getItem('flight_scores')||'[]')}catch(e){return[]}
@@ -1512,6 +1512,8 @@ function deleteEntry(name){
   cacheScores(scores);
   renderLBFromData(scores);
   if(!scores.length)hideAdminButtons();
+  // Delete from Google Sheet
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',name:name})}).catch(e=>console.warn('Sheet DELETE failed:',e));
 }
 
 function toggleEditMode(){
@@ -1527,6 +1529,8 @@ function confirmReset(){
   window._lbEditMode=false;
   renderLBFromData([]);
   hideAdminButtons();
+  // Reset Google Sheet
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'reset'})}).catch(e=>console.warn('Sheet RESET failed:',e));
 }
 
 function hideAdminButtons(){
