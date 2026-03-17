@@ -1420,7 +1420,7 @@ function nextPlayer(){
 }
 
 // ===== LEADERBOARD (Google Sheets backend) =====
-const SHEET_API='https://script.google.com/macros/s/AKfycbwwCoqSQpXJMd-oYlb4Hssb8agoUU2i4Fm_j-zzjFGWAb8saLKJoLhKGrXIrL20l0xk/exec';
+const SHEET_API='https://script.google.com/macros/s/AKfycby8nMRIsWqjekeMxsUE2kcBpNni1A5bbZua-x8mJ5Rc4sV0DTFRlVR0tVQPIozzrYgP/exec';
 
 function getCachedScores(){
   try{return JSON.parse(localStorage.getItem('flight_scores')||'[]')}catch(e){return[]}
