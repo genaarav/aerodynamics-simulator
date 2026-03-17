@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Do Aeroplanes Fly? | Interactive Aerodynamics</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f8f7f4;--card:#ffffff;--card2:#f0efe9;--border:rgba(0,0,0,0.08);--accent:#1b3a5c;--accent2:#c8982e;--green:#16794a;--blue:#1b5da8;--red:#c43a31;--txt:#1a1a1a;--txt2:#4a4a4a;--txt3:#7a7a7a;--radius:14px;--school-navy:#1b3a5c;--school-gold:#c8982e}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1120;--card:#131c2e;--card2:#1a2640;--border:rgba(255,255,255,0.08);--accent:#5b9bd5;--accent2:#e8b84a;--green:#34d399;--blue:#60a5fa;--red:#f87171;--txt:#e2e8f0;--txt2:#94a3b8;--txt3:#64748b;--school-navy:#5b9bd5;--school-gold:#e8b84a}}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--txt);overflow-x:hidden;transition:background .3s,color .3s}
+a{color:inherit;text-decoration:none}
+.mono{font-family:'JetBrains Mono',monospace}
+
+/* === HERO === */
+.hero{position:relative;min-height:340px;overflow:hidden;background:linear-gradient(170deg,#0d1a30 0%,#1b3a5c 30%,#2d6cb5 65%,#7ec8e3 100%);display:flex;align-items:center;justify-content:center;text-align:center;padding:50px 20px 60px}
+.hero-text{position:relative;z-index:10}
+.hero h1{font-size:clamp(30px,6vw,52px);font-weight:800;letter-spacing:-2px;line-height:1.1;background:linear-gradient(135deg,#fff 30%,#FF6B35 70%,#F7C948);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero .sub{font-size:clamp(13px,2vw,17px);color:rgba(255,255,255,.9);margin-top:10px;font-weight:600}
+.school-logo{transition:filter .3s}
+.footer-logo{transition:filter .3s}
+@media(prefers-color-scheme:dark){.footer-logo{filter:brightness(0) invert(1)!important}}
+[data-theme="dark"] .footer-logo{filter:brightness(0) invert(1)!important}
+.hero .badge{display:inline-block;margin-top:14px;padding:6px 16px;border-radius:100px;background:rgba(200,152,46,.2);color:#e8c85a;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(200,152,46,.35)}
+
+/* Animated planes */
+.fly{position:absolute;z-index:5;filter:drop-shadow(0 8px 30px rgba(0,0,0,.5))}
+.fly img{height:100%;width:auto}
+.fly1{height:90px;animation:flyA 14s linear infinite}
+.fly2{height:50px;opacity:.35;animation:flyA 22s linear infinite 5s}
+.fly3{height:65px;opacity:.5;animation:flyB 18s linear infinite 2s}
+@keyframes flyA{0%{left:-15%;top:55%;opacity:0}5%{opacity:1}50%{top:40%}95%{opacity:1}100%{left:115%;top:48%;opacity:0}}
+@keyframes flyB{0%{right:-15%;top:25%;opacity:0}5%{opacity:.5}50%{top:35%}95%{opacity:.5}100%{right:115%;top:30%;opacity:0}}
+
+/* Stars */
+.stars{position:absolute;inset:0;overflow:hidden;z-index:1}
+.star{position:absolute;background:#fff;border-radius:50%;animation:twinkle var(--d,3s) ease-in-out infinite var(--del,0s)}
+@keyframes twinkle{0%,100%{opacity:.15}50%{opacity:.9}}
+
+/* Clouds */
+.clouds{position:absolute;bottom:0;left:0;right:0;height:80px;z-index:4}
+.cld{position:absolute;background:rgba(255,255,255,.06);border-radius:50px;height:30px;animation:cdrift var(--s,25s) linear infinite var(--del,0s)}
+@keyframes cdrift{from{transform:translateX(-250px)}to{transform:translateX(calc(100vw + 250px))}}
+
+/* === NAV === */
+.nav{position:sticky;top:0;z-index:100;background:rgba(248,247,244,.92);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 16px}@media(prefers-color-scheme:dark){.nav{background:rgba(11,17,32,.92)}}
+.nav-scroll{max-width:880px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;padding:10px 0;scrollbar-width:none}
+.nav-scroll::-webkit-scrollbar{display:none}
+.nbtn{padding:8px 18px;border-radius:100px;font-size:13px;font-weight:600;border:none;background:transparent;color:var(--txt3);cursor:pointer;transition:.3s;white-space:nowrap;font-family:inherit}
+.nbtn:hover{color:var(--txt)}
+.nbtn.on{background:var(--school-navy);color:#fff;box-shadow:0 2px 20px rgba(27,58,92,.25)}@media(prefers-color-scheme:dark){.nbtn.on{background:var(--school-gold);color:#0b1120;box-shadow:0 2px 20px rgba(200,152,46,.25)}}
+
+/* === CONTAINER === */
+.wrap{max-width:1200px;margin:0 auto;padding:24px 16px}
+.sec{display:none;animation:fadeIn .4s ease}
+.sec.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+
+/* === CARDS === */
+.cd{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:24px;margin-bottom:16px}
+.cd h2{font-size:21px;font-weight:700;letter-spacing:-.5px;margin-bottom:6px}
+.cd h3{font-size:16px;font-weight:600;margin-bottom:6px}
+.cd p{font-size:14px;line-height:1.7;color:var(--txt2)}
+.hl{color:var(--accent);font-weight:600}
+.hl2{color:var(--accent2);font-weight:600}
+.fact{padding:14px 18px;border-radius:12px;background:rgba(255,107,53,.06);border-left:3px solid var(--accent);font-size:13px;line-height:1.6;color:var(--txt2);margin:14px 0}
+.fact b{color:var(--accent)}
+
+/* === FORCE SIMULATOR === */
+.sim-box{position:relative;width:100%;height:420px;border-radius:var(--radius);overflow:hidden;margin:16px 0;background:linear-gradient(180deg,#0d1a38 0%,#1b3f72 30%,#4a90d9 60%,#87CEEB 78%,#a8d8ea 88%,#6da832 93%,#4a8c20 100%)}
+.sim-plane{position:absolute;left:50%;transform:translateX(-50%);transition:top .7s cubic-bezier(.4,0,.2,1);z-index:10;pointer-events:none}
+.sim-plane svg,.sim-plane img{filter:drop-shadow(0 8px 30px rgba(0,0,0,.5));transition:transform .3s}
+.sim-trail{position:absolute;z-index:5;pointer-events:none}
+.sim-trail span{position:absolute;width:6px;height:6px;background:rgba(255,255,255,.15);border-radius:50%;animation:trailFade 1.5s ease forwards}
+@keyframes trailFade{to{opacity:0;transform:scale(3)}}
+/* Scrolling clouds in sim */
+.sim-clouds{position:absolute;inset:0;z-index:3;overflow:hidden;pointer-events:none}
+.scld{position:absolute;background:rgba(255,255,255,.1);border-radius:30px;height:14px}
+@keyframes scloud{from{transform:translateX(110%)}to{transform:translateX(-200px)}}
+/* Vapour trails from engines */
+.vapour-box{position:absolute;z-index:8;pointer-events:none;overflow:hidden;inset:0}
+.vp{position:absolute;border-radius:50%;background:rgba(255,255,255,.2);animation:vpfade 2s ease-out forwards}
+@keyframes vpfade{0%{opacity:.35;transform:scale(1)}100%{opacity:0;transform:scale(5) translateX(-30px)}}
+/* Engine glow indicators */
+.eng-glow{position:absolute;z-index:9;pointer-events:none;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.6),transparent 70%);transition:width .4s,height .4s,opacity .4s}
+/* Altitude meter */
+.alt-meter{position:absolute;right:12px;top:12px;bottom:12px;width:36px;z-index:20;border-radius:8px;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;padding:8px 4px}
+.alt-label{font-family:'JetBrains Mono',monospace;font-size:7px;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase}
+.alt-bar{width:8px;flex:1;border-radius:4px;background:rgba(255,255,255,.1);margin:6px 0;position:relative;overflow:hidden}
+.alt-fill{position:absolute;bottom:0;width:100%;border-radius:4px;transition:height .5s;background:linear-gradient(0deg,var(--green),var(--accent2),var(--accent))}
+.alt-val{font-family:'JetBrains Mono',monospace;font-size:10px;color:#fff;font-weight:700}
+/* Speed indicator */
+.spd-meter{position:absolute;left:12px;top:12px;z-index:20;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,.35);backdrop-filter:blur(4px);font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(255,255,255,.7)}
+.spd-meter b{color:#fff;font-size:13px}
+/* Arrow key controls */
+.kb-ctrl{position:absolute;left:12px;bottom:12px;z-index:20;display:flex;flex-direction:column;align-items:center;gap:3px}
+.kb-row{display:flex;gap:3px}
+.kbtn{width:38px;height:34px;border-radius:8px;background:rgba(0,0,0,.45);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,.65);font-size:15px;cursor:pointer;transition:.15s;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+.kbtn:hover,.kbtn.on{background:rgba(255,107,53,.5);border-color:rgba(255,107,53,.5);color:#fff;transform:scale(1.1)}
+.kbtn:active{transform:scale(.92)}
+.kb-tip{font-size:7px;color:rgba(255,255,255,.3);text-align:center;letter-spacing:.5px;margin-top:2px}
+
+/* Force arrows overlay */
+.f-arrows{position:absolute;inset:0;z-index:15;pointer-events:none}
+.f-arr{position:absolute;display:flex;flex-direction:column;align-items:center}
+.f-arr .f-line{transition:height .5s}
+.f-arr .f-label{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;white-space:nowrap;letter-spacing:.5px}
+
+/* Controls */
+.ctrls{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+@media(max-width:500px){.ctrls{grid-template-columns:1fr}}
+.ctrl{padding:16px;border-radius:12px;background:var(--card2);border:1px solid var(--border)}
+.ctrl label{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:10px}
+.ctrl input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;-webkit-appearance:none;height:6px;border-radius:3px;background:var(--border);outline:none}
+.ctrl input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 2px 8px rgba(255,107,53,.4)}
+.ctrl .val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--accent);margin-top:6px}
+
+.status-row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.chip{padding:5px 14px;border-radius:100px;font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px}
+.chip i{width:7px;height:7px;border-radius:50%;display:inline-block}
+
+/* === PLANE GALLERY === */
+
+/* === AEROFOIL === */
+.aero-box{position:relative;width:100%;height:300px;border-radius:var(--radius);overflow:hidden;margin:16px 0;background:linear-gradient(135deg,#0d1a38,#1b3f72)}
+
+/* Animated airflow particles */
+.particle-layer{position:absolute;inset:0;overflow:hidden}
+.airp{position:absolute;width:4px;height:4px;border-radius:50%;animation:airflow var(--s,3s) linear infinite var(--del,0s)}
+.airp.top{background:rgba(96,165,250,.6)}
+.airp.bot{background:rgba(148,163,184,.35)}
+@keyframes airflow{from{left:-5%}to{left:105%}}
+
+/* === PARTS === */
+.parts-svg-wrap{position:relative;width:100%;border-radius:var(--radius);overflow:hidden;margin:16px 0;background:var(--card2);padding:16px}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:14px 0}
+.pbtn{padding:12px;border-radius:12px;border:1px solid var(--border);background:var(--card);cursor:pointer;text-align:center;transition:.3s;font-family:inherit;color:var(--txt)}
+.pbtn:hover{border-color:var(--accent);transform:translateY(-2px)}
+.pbtn.sel{border-color:var(--accent);background:rgba(255,107,53,.08);box-shadow:0 0 20px rgba(255,107,53,.08)}
+.pbtn .pn{font-size:13px;font-weight:600}
+.pbtn .pr{font-size:10px;color:var(--txt3);margin-top:2px}
+.pdetail{padding:20px;border-radius:12px;background:var(--card2);border:1px solid var(--border);margin-top:12px;display:none;animation:fadeIn .3s}
+.pdetail.show{display:block}
+.exp-body.show{display:block!important}
+.pdetail h4{font-size:16px;font-weight:700;margin-bottom:6px;color:var(--accent)}
+.pdetail p{font-size:13px;line-height:1.7;color:var(--txt2)}
+
+/* === QUIZ GAME === */
+.game-start{text-align:center;padding:48px 20px}
+.game-start input{padding:14px 20px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--txt);font-size:17px;font-weight:500;font-family:inherit;width:100%;max-width:340px;text-align:center;outline:none;transition:.3s}
+.game-start input:focus{border-color:var(--accent);box-shadow:0 0 20px rgba(255,107,53,.1)}
+.game-start input::placeholder{color:var(--txt3)}
+
+.btn{padding:12px 32px;border-radius:100px;border:none;font-size:14px;font-weight:700;cursor:pointer;transition:.3s;font-family:inherit;display:inline-flex;align-items:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn1{background:var(--accent);color:#fff}
+.btn1:hover{background:#e8571f;box-shadow:0 4px 20px rgba(255,107,53,.3);transform:translateY(-2px)}
+.btn2{background:var(--card2);color:var(--txt);border:1px solid var(--border)}
+.btn2:hover{border-color:var(--accent)}
+
+.hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}
+.hud-box{text-align:center;padding:12px;border-radius:12px;background:var(--card);border:1px solid var(--border)}
+.hud-label{font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px}
+.hud-num{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;margin-top:4px}
+
+.timer-bar{width:100%;height:8px;border-radius:4px;background:var(--card2);margin-bottom:16px;overflow:hidden}
+.timer-fill{height:100%;border-radius:4px;transition:width .15s linear;background:linear-gradient(90deg,var(--green),var(--accent2),var(--accent))}
+
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;animation:fadeIn .35s}
+.qcat{font-size:10px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px}
+.qtxt{font-size:18px;font-weight:600;line-height:1.5;margin-bottom:20px}
+.qopts{display:flex;flex-direction:column;gap:8px}
+.qo{padding:14px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);cursor:pointer;font-size:14px;font-weight:500;transition:.25s;font-family:inherit;color:var(--txt);display:flex;align-items:center;gap:12px;text-align:left}
+.qo:hover{border-color:var(--txt3);background:rgba(255,255,255,.03)}
+.qo .let{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--txt3);flex-shrink:0;font-family:'JetBrains Mono',monospace}
+.qo.ok{border-color:var(--green);background:rgba(52,211,153,.1)}.qo.ok .let{background:var(--green);color:#fff}
+.qo.no{border-color:var(--red);background:rgba(248,113,113,.1)}.qo.no .let{background:var(--red);color:#fff}
+.qo.dis{pointer-events:none;opacity:.4}
+.qo.reveal{border-color:var(--green)!important;opacity:1!important}
+.qfb{margin-top:14px;padding:14px 16px;border-radius:12px;font-size:13px;line-height:1.6;display:none}
+.qfb.show{display:block}
+.qfb.fbok{background:rgba(52,211,153,.08);color:#6ee7b7;border:1px solid rgba(52,211,153,.2)}
+.qfb.fbno{background:rgba(248,113,113,.08);color:#fca5a5;border:1px solid rgba(248,113,113,.2)}
+
+/* Results */
+.res{text-align:center;padding:40px 20px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px}
+.res-score{font-family:'JetBrains Mono',monospace;font-size:52px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.res-of{font-size:14px;color:var(--txt3)}
+.res-stars{font-size:36px;margin:16px 0;letter-spacing:6px}
+.res-msg{font-size:16px;color:var(--txt2);margin-bottom:24px}
+.res-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:20px 0}
+.res-item{padding:12px;border-radius:12px;background:var(--card2)}
+.res-item .rn{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700}
+.res-item .rl{font-size:10px;color:var(--txt3);margin-top:2px}
+
+/* Leaderboard */
+.lb{margin-top:16px}
+.lb table{width:100%;border-collapse:collapse}
+.lb th{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;padding:10px 12px;text-align:left;border-bottom:1px solid var(--border);font-weight:700}
+.lb td{padding:10px 12px;font-size:13px;border-bottom:1px solid var(--border)}
+.lb tr:hover td{background:rgba(255,255,255,.02)}
+.lb .rank{font-family:'JetBrains Mono',monospace;font-weight:700;width:40px}
+.lb .medal{font-size:18px}
+.lb .sc{font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--accent)}
+.lb .pct{font-size:11px;color:var(--txt3)}
+.lb-empty{text-align:center;padding:40px;color:var(--txt3);font-size:14px}
+.lb-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+
+/* Responsive */
+.sim-layout{grid-template-columns:1fr 1fr}
+@media(max-width:800px){.sim-layout{grid-template-columns:1fr!important}.sim-box{min-height:350px!important}}@media(max-width:600px){
+  .hero{min-height:340px;padding:40px 16px 60px}
+  .hud{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .hud-num{font-size:18px}
+  .pgrid{grid-template-columns:1fr 1fr}
+  .res-grid{grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .res-score{font-size:40px}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="stars" id="stars"></div>
+  <div class="clouds" id="clouds"></div>
+  <div class="fly fly1"><svg viewBox="0 0 280 80" height="100%"><g fill="#c8d0d8" stroke="#8899aa" stroke-width=".7"><ellipse cx="140" cy="40" rx="110" ry="16"/><path d="M250,35Q280,40,250,45" fill="#b0b8c0"/><path d="M95,24L82,2h55l8,22"/><path d="M95,56L82,78h55l8,-22"/><path d="M38,24L28,4h20Z" fill="#c8982e" stroke="#a07820"/><ellipse cx="100" cy="10" rx="12" ry="6" fill="#a0a8b0"/><ellipse cx="100" cy="70" rx="12" ry="6" fill="#a0a8b0"/></g></svg></div>
+  <div class="fly fly2"><svg viewBox="0 0 280 80" height="100%"><g fill="#d0d8e0" stroke="#8899aa" stroke-width=".7"><ellipse cx="140" cy="40" rx="110" ry="16"/><path d="M250,35Q280,40,250,45" fill="#b8c0c8"/><path d="M95,24L82,2h55l8,22"/><path d="M95,56L82,78h55l8,-22"/><path d="M38,24L28,4h20Z" fill="#1b3a5c" stroke="#0f2540"/><ellipse cx="100" cy="10" rx="12" ry="6" fill="#a0a8b0"/><ellipse cx="100" cy="70" rx="12" ry="6" fill="#a0a8b0"/></g></svg></div>
+  <div class="hero-text">
+    <!-- School Logo — black version for hero (inverts in dark mode via CSS filter on dark bg) -->
+    <div style="margin-bottom:8px">
+      <img src="https://www.stmargarets-school.org.uk/assets/img/svg/logo-black.svg" alt="St Margaret's School" class="school-logo" style="height:55px;filter:brightness(0) invert(1)" onerror="this.style.display='none'">
+    </div>
+    <div class="badge" style="margin-bottom:16px">STEM Fair 2026</div>
+    <h1>Aerodynamics &amp; Aeroplanes</h1>
+    <div class="sub">The science of how things fly &mdash; made simple</div>
+    <div style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.85);font-weight:500">Presented by Aarav B, John Z, Adam-Zak</div>
+  </div>
+</div>
+
+<!-- Theme toggle — fixed top right -->
+<button onclick="toggleTheme()" id="themeBtn" style="position:fixed;top:12px;right:16px;z-index:200;width:38px;height:38px;border-radius:50%;border:1px solid var(--border);background:var(--card);color:var(--txt);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,.1);transition:.3s" title="Toggle dark/light mode">&#9790;</button>
+
+<!-- ===== NAV ===== -->
+<div class="nav">
+  <div class="nav-scroll">
+    <button class="nbtn on" onclick="go(0)">&#128218; Key Concepts</button>
+    <button class="nbtn" onclick="go(1)">&#9992; Simulator</button>
+    <button class="nbtn" onclick="go(2)">&#9729; How Lift Works</button>
+    <button class="nbtn" onclick="go(3)">&#127758; Real-World Aero</button>
+    <button class="nbtn" onclick="go(4)">&#127942; Pilot Academy</button>
+    <button class="nbtn" onclick="go(5)">&#127941; Leaderboard</button>
+  </div>
+</div>
+
+<!-- ===== CONTENT ===== -->
+<div class="wrap">
+
+<!-- SEC 0: KEY CONCEPTS -->
+<div class="sec on" id="s0">
+  <div class="cd">
+    <h2>Key concepts of aerodynamics</h2>
+    <p>Before we get into simulators and experiments — here are the <span class="hl">8 key ideas</span> you need to understand aerodynamics. Each one is simple, and you already experience them every day without knowing it.</p>
+  </div>
+
+  <!-- Concept cards grid -->
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:14px 0" id="conceptsGrid">
+
+    <div class="cd" style="border-left:3px solid var(--green)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#9650;</span><h3 style="margin:0;color:var(--green)">Lift</h3></div>
+      <p>The upward force that keeps a plane in the air. Created by air moving over the wings.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(52,211,153,.06);font-size:12px;color:var(--txt2)"><img src="images/lift.jpg" alt="Airplane taking off from runway demonstrating lift" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:var(--green)">Real life:</b> Hold paper near your mouth and blow over it — it rises. That's lift. Same thing happens to a 400-tonne plane, just with way more air.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid var(--red)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#9660;</span><h3 style="margin:0;color:var(--red)">Weight (Gravity)</h3></div>
+      <p>Gravity pulls everything down. A plane has to create enough lift to beat its own weight or it falls.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(248,113,113,.06);font-size:12px;color:var(--txt2)"><img src="images/weight.jpg" alt="Boeing 747 on the ground showing its massive weight" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:var(--red)">Real life:</b> Drop a ball — it falls. That's weight. A Boeing 747 weighs 180,000 kg. The wings have to push upward harder than that, every single second.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid var(--blue)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#9654;</span><h3 style="margin:0;color:var(--blue)">Thrust</h3></div>
+      <p>The forward push from the engines. Without thrust, there's no speed. Without speed, there's no air over the wings. Without air over the wings, there's no lift.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(96,165,250,.06);font-size:12px;color:var(--txt2)"><img src="images/thrust.jpg" alt="Jet engine close-up showing thrust power" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:var(--blue)">Real life:</b> Pedalling a bike = thrust. Stop pedalling and you slow down. A jet engine blasts hot air backward at 1,500 km/h — Newton's Third Law pushes the plane forward.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid var(--accent2)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#9664;</span><h3 style="margin:0;color:var(--accent2)">Drag</h3></div>
+      <p>Air resistance — it pushes against anything moving through it. The faster you go, the more drag you get (it increases with the <i>square</i> of speed!).</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(247,201,72,.06);font-size:12px;color:var(--txt2)"><img src="images/drag.jpg" alt="Hand out of car window feeling air drag" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:var(--accent2)">Real life:</b> Stick your hand out a car window. Palm flat = low drag. Turn it sideways = huge drag. That's why planes are tube-shaped, not brick-shaped.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid #a78bfa">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#127744;</span><h3 style="margin:0;color:#a78bfa">Bernoulli's Principle</h3></div>
+      <p>When air moves faster, its pressure drops. The curved top of a wing makes air go faster above than below — low pressure on top, high pressure below — and the wing gets pushed up.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(167,139,250,.06);font-size:12px;color:var(--txt2)"><img src="images/bernoulli.jpg" alt="Shower head with water flowing demonstrating Bernoulli's Principle" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:#a78bfa">Real life:</b> Ever noticed the shower curtain gets sucked inward when you're showering? Fast water creates low pressure — same idea as a wing!</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid #f472b6">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#128640;</span><h3 style="margin:0;color:#f472b6">Newton's Third Law</h3></div>
+      <p>Every action has an equal and opposite reaction. Wings push air DOWN, so air pushes wings UP. Engines blast air BACKWARD, so the plane goes FORWARD.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(244,114,182,.06);font-size:12px;color:var(--txt2)"><img src="images/newton.jpg" alt="Rocket launch showing Newton's Third Law action and reaction" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:#f472b6">Real life:</b> Blow up a balloon and let it go — air goes one way, balloon flies the other. That's exactly how a jet engine works. Also how you swim — push water back, you go forward.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid #38bdf8">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#128168;</span><h3 style="margin:0;color:#38bdf8">Streamlining</h3></div>
+      <p>Shaping something so air flows smoothly around it instead of smashing into it. Less messy airflow = less drag = less fuel needed.</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(56,189,248,.06);font-size:12px;color:var(--txt2)"><img src="images/streamline.jpg" alt="Formula 1 racing car with streamlined aerodynamic design" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:#38bdf8">Real life:</b> A teardrop shape has 10x less drag than a flat plate. That's why planes, racing cars, and even cycling helmets are all smooth and curved — not flat and boxy.</div>
+    </div>
+
+    <div class="cd" style="border-left:3px solid #fb923c">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span style="font-size:20px">&#127786;</span><h3 style="margin:0;color:#fb923c">Angle of Attack</h3></div>
+      <p>The tilt of the wing compared to the incoming air. A small tilt = more lift. Too much tilt = the air breaks away and the wing "stalls" (suddenly loses lift).</p>
+      <div style="margin-top:8px;padding:8px 10px;border-radius:8px;background:rgba(251,146,60,.06);font-size:12px;color:var(--txt2)"><img src="images/angle.jpg" alt="Airplane landing with nose tilted up showing angle of attack" loading="lazy" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:6px;display:block"><b style="color:#fb923c">Real life:</b> Tilt your hand slightly up in the wind — it lifts. Tilt it too much and it just gets slammed back. Pilots have to find the sweet spot, usually around 4-15 degrees.</div>
+    </div>
+
+  </div>
+
+  <div class="cd" style="text-align:center;padding:20px">
+    <div style="font-size:15px;font-weight:600;margin-bottom:8px">How do these all connect?</div>
+    <div style="font-size:13px;color:var(--txt2);max-width:640px;margin:0 auto;line-height:1.8;text-align:left">
+      It starts with <span class="hl">Thrust</span> — the engines push the plane forward, building up speed.
+      That speed forces air over the <span class="hl2">wings</span>, and because of their special curved shape (<span style="color:#a78bfa">Bernoulli's Principle</span> — faster air on top = lower pressure = upward push), the plane gets <span class="hl">Lift</span>.
+      Tilting the wing up a bit (<span style="color:#fb923c">Angle of Attack</span>) scoops even more air downward, creating even more lift.
+      For the plane to leave the ground, lift must be stronger than <span style="color:var(--red)">Weight</span> — that's gravity pulling everything down.
+      But moving through air also creates <span style="color:var(--accent2)">Drag</span> — air resistance pushing back against you.
+      That's why planes are smooth and pointy (<span style="color:#38bdf8">Streamlining</span>) — to cut through the air with as little drag as possible.
+      And behind all of it is <span style="color:#f472b6">Newton's Third Law</span>: the wing pushes air down, and the air pushes the wing up. Every action has an equal and opposite reaction.
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn1" onclick="go(1)" style="font-size:13px">Try the flight simulator &#10132;</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- SEC 0: FOUR FORCES -->
+<div class="sec" id="s1">
+  <div class="cd">
+    <h2>The four forces of flight</h2>
+    <p>Right now, this plane is sitting on the ground with the engines off. Your job? <span class="hl">Get it flying!</span> Use the arrow keys (or the buttons in the simulator) to control thrust and wing angle. Watch what happens to the four force arrows as the plane takes off, cruises, and lands.</p>
+  </div>
+
+  <!-- === MAIN SIMULATOR LAYOUT: Controls left, Sky right === -->
+  <div style="display:grid;gap:12px;margin-top:12px" class="sim-layout">
+
+    <!-- LEFT COLUMN: Controls + Forces + Explanation -->
+    <div style="display:flex;flex-direction:column;gap:10px">
+
+      <!-- Cockpit Controls -->
+      <div class="cd" style="padding:12px 14px">
+        <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Cockpit controls</div>
+        <div style="display:flex;gap:8px;justify-content:center">
+          <div style="text-align:center;flex:1">
+            <div style="font-size:11px;font-weight:600;margin-bottom:2px">Throttle</div>
+            <div style="font-size:8px;color:var(--txt3);margin-bottom:4px">Engine power</div>
+            <input type="range" min="0" max="100" value="0" id="sThrust" oninput="updateSim()" style="writing-mode:vertical-lr;height:90px;width:22px;direction:rtl;accent-color:var(--blue)">
+            <div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--blue);margin-top:3px" id="vThrust">0%</div>
+            <div style="font-size:7px;color:var(--txt3)">&#9654;&#9664; keys</div>
+          </div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:11px;font-weight:600;margin-bottom:2px">Yoke</div>
+            <div style="font-size:8px;color:var(--txt3);margin-bottom:4px">Nose angle</div>
+            <input type="range" min="0" max="100" value="0" id="sAngle" oninput="updateSim()" style="writing-mode:vertical-lr;height:90px;width:22px;direction:rtl;accent-color:var(--accent)">
+            <div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--accent);margin-top:3px" id="vAngle">0&deg;</div>
+            <div style="font-size:7px;color:var(--txt3)">&#9650;&#9660; keys</div>
+          </div>
+          <div style="text-align:center;flex:1">
+            <div style="font-size:11px;font-weight:600;margin-bottom:2px">Flaps</div>
+            <div style="font-size:8px;color:var(--txt3);margin-bottom:4px">Wing area</div>
+            <input type="range" min="0" max="4" value="0" step="1" id="sFlaps" oninput="updateSim()" style="writing-mode:vertical-lr;height:90px;width:22px;direction:rtl;accent-color:var(--green)">
+            <div style="font-family:JetBrains Mono,monospace;font-size:13px;font-weight:700;color:var(--green);margin-top:3px" id="vFlaps">0&deg;</div>
+            <div style="font-size:7px;color:var(--txt3)">F key</div>
+          </div>
+        </div>
+        <div class="status-row" id="statusRow" style="margin-top:8px"></div>
+      </div>
+
+      <!-- Live forces + explanation -->
+      <div class="cd" id="simExplain" style="padding:16px 18px;border-left:3px solid var(--accent);background:var(--card2);flex:1;overflow-y:auto">
+        <div id="simExplainText" style="font-size:13px;line-height:1.65;color:var(--txt2)"></div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Sky Simulator -->
+    <div class="sim-box" id="simBox" style="height:auto;min-height:300px">
+      <div class="sim-plane" id="simPlane" style="top:160px">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODAgMTYwIj4KICA8ZGVmcz4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0iYmciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iI2YwZjJmNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ1JSIgc3RvcC1jb2xvcj0iI2YwZjJmNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjQ2JSIgc3RvcC1jb2xvcj0iIzFhM2E3YSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU0JSIgc3RvcC1jb2xvcj0iIzFhM2E3YSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjU1JSIgc3RvcC1jb2xvcj0iI2YwZjJmNSIvPgogICAgICA8c3RvcCBvZmZzZXQ9IjEwMCUiIHN0b3AtY29sb3I9IiNlMGU0ZTgiLz4KICAgIDwvbGluZWFyR3JhZGllbnQ+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImVuZyIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjAiPgogICAgICA8c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjODg4Ii8+CiAgICAgIDxzdG9wIG9mZnNldD0iNTAlIiBzdG9wLWNvbG9yPSIjYWFiIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzk5OSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICAgIDxsaW5lYXJHcmFkaWVudCBpZD0id2luIiB4MT0iMCIgeTE9IjAiIHgyPSIwIiB5Mj0iMSI+CiAgICAgIDxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNhOGQ0ZjAiLz4KICAgICAgPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjNGE5MGM4Ii8+CiAgICA8L2xpbmVhckdyYWRpZW50PgogIDwvZGVmcz4KICA8IS0tIEZ1c2VsYWdlIC0tPgogIDxwYXRoIGQ9Ik02MCw2MCBRMzAsNjAgMjAsNzIgUTEyLDgwIDIwLDg4IFEzMCwxMDAgNjAsMTAwIEw0MDAsMTAwIFE0MzAsMTAwIDQ0NSw5MCBRNDYwLDgwIDQ0NSw3MCBRNDMwLDYwIDQwMCw2MCBaIiBmaWxsPSJ1cmwoI2JnKSIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjEiLz4KICA8IS0tIEJlbGx5IC0tPgogIDxwYXRoIGQ9Ik02MCwxMDAgTDQwMCwxMDAgUTQzMCwxMDAgNDQ1LDkwIEw0NDUsOTUgUTQzMCwxMDUgNDAwLDEwNSBMNjAsMTA1IFEzNSwxMDUgMjUsOTUgTDIwLDg4IFEzMCwxMDAgNjAsMTAwWiIgZmlsbD0iI2M4Y2NkMiIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iLjYiLz4KICA8IS0tIE5vc2UgY29uZSAtLT4KICA8cGF0aCBkPSJNNDQ1LDcwIFE0NjUsNzIgNDcwLDgwIFE0NjUsODggNDQ1LDkwIiBmaWxsPSIjZDhkY2UyIiBzdHJva2U9IiM4ODk5YWEiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPCEtLSBDb2NrcGl0IHdpbmRvd3MgLS0+CiAgPHJlY3QgeD0iNDQ4IiB5PSI3MyIgd2lkdGg9IjgiIGhlaWdodD0iNSIgcng9IjIiIGZpbGw9InVybCgjd2luKSIvPgogIDxyZWN0IHg9IjQ0MCIgeT0iNzQiIHdpZHRoPSI3IiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSJ1cmwoI3dpbikiLz4KICA8IS0tIFBhc3NlbmdlciB3aW5kb3dzIHJvdyAtLT4KICA8ZyBvcGFjaXR5PSIuNyI+CiAgICA8cmVjdCB4PSIxMDAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjExMCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMTIwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIxMzAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjE0MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMTUwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIxNjAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjE3MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMTgwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIxOTAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjIwMCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMjEwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIyMjAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjIzMCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMjQwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIyNTAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjI2MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMjcwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIyODAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjI5MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMzAwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIzMTAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjMyMCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMzMwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIzNDAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjM1MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMzYwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSIzNzAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjM4MCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogICAgPHJlY3QgeD0iMzkwIiB5PSI3MiIgd2lkdGg9IjQiIGhlaWdodD0iNSIgcng9IjEuNSIgZmlsbD0idXJsKCN3aW4pIi8+CiAgICA8cmVjdCB4PSI0MDAiIHk9IjcyIiB3aWR0aD0iNCIgaGVpZ2h0PSI1IiByeD0iMS41IiBmaWxsPSJ1cmwoI3dpbikiLz4KICAgIDxyZWN0IHg9IjQxMCIgeT0iNzIiIHdpZHRoPSI0IiBoZWlnaHQ9IjUiIHJ4PSIxLjUiIGZpbGw9InVybCgjd2luKSIvPgogIDwvZz4KICA8IS0tIFdpbmcgKHVwcGVyKSAtLT4KICA8cGF0aCBkPSJNMjAwLDYyIEwxNzAsOCBRMTY4LDQgMTcyLDQgTDI0OCw0IFEyNTIsNCAyNTIsOCBMMjQwLDYyIiBmaWxsPSIjYzBjOGQwIiBzdHJva2U9IiM4ODk5YWEiIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPCEtLSBXaW5nIChsb3dlcikgLS0+CiAgPHBhdGggZD0iTTIwMCw5OCBMMTcwLDE1MiBRMTY4LDE1NiAxNzIsMTU2IEwyNDgsMTU2IFEyNTIsMTU2IDI1MiwxNTIgTDI0MCw5OCIgZmlsbD0iI2MwYzhkMCIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDwhLS0gV2luZ2xldHMgLS0+CiAgPHBhdGggZD0iTTE3MCw4IEwxNjQsMiBRMTYyLDAgMTY2LDAgTDE3NCw0IiBmaWxsPSIjYjhjMGM4IiBzdHJva2U9IiM4ODk5YWEiIHN0cm9rZS13aWR0aD0iMC41Ii8+CiAgPHBhdGggZD0iTTE3MCwxNTIgTDE2NCwxNTggUTE2MiwxNjAgMTY2LDE2MCBMMTc0LDE1NiIgZmlsbD0iI2I4YzBjOCIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuNSIvPgogIDwhLS0gRmxhcHMgLS0+CiAgPHJlY3QgeD0iMjQyIiB5PSI0IiB3aWR0aD0iNiIgaGVpZ2h0PSIxMCIgcng9IjEiIGZpbGw9IiMxYTNhN2EiIG9wYWNpdHk9Ii4zIi8+CiAgPHJlY3QgeD0iMjQyIiB5PSIxNDYiIHdpZHRoPSI2IiBoZWlnaHQ9IjEwIiByeD0iMSIgZmlsbD0iIzFhM2E3YSIgb3BhY2l0eT0iLjMiLz4KICA8IS0tIEVuZ2luZSAxICh1cHBlciB3aW5nKSAtLT4KICA8ZWxsaXBzZSBjeD0iMjE1IiBjeT0iMTgiIHJ4PSIxOCIgcnk9IjkiIGZpbGw9InVybCgjZW5nKSIgc3Ryb2tlPSIjNzc3IiBzdHJva2Utd2lkdGg9IjAuOCIvPgogIDxlbGxpcHNlIGN4PSIyMTUiIGN5PSIxOCIgcng9IjE0IiByeT0iNyIgZmlsbD0iIzU1NSIgb3BhY2l0eT0iLjMiLz4KICA8ZWxsaXBzZSBjeD0iMjAyIiBjeT0iMTgiIHJ4PSI1IiByeT0iNCIgZmlsbD0iI0ZGNkIzNSIgb3BhY2l0eT0iLjQiPgogICAgPGFuaW1hdGUgYXR0cmlidXRlTmFtZT0ib3BhY2l0eSIgdmFsdWVzPSIuMjsuNjsuMiIgZHVyPSIxcyIgcmVwZWF0Q291bnQ9ImluZGVmaW5pdGUiLz4KICA8L2VsbGlwc2U+CiAgPCEtLSBFbmdpbmUgMiAobG93ZXIgd2luZykgLS0+CiAgPGVsbGlwc2UgY3g9IjIxNSIgY3k9IjE0MiIgcng9IjE4IiByeT0iOSIgZmlsbD0idXJsKCNlbmcpIiBzdHJva2U9IiM3NzciIHN0cm9rZS13aWR0aD0iMC44Ii8+CiAgPGVsbGlwc2UgY3g9IjIxNSIgY3k9IjE0MiIgcng9IjE0IiByeT0iNyIgZmlsbD0iIzU1NSIgb3BhY2l0eT0iLjMiLz4KICA8ZWxsaXBzZSBjeD0iMjAyIiBjeT0iMTQyIiByeD0iNSIgcnk9IjQiIGZpbGw9IiNGRjZCMzUiIG9wYWNpdHk9Ii40Ij4KICAgIDxhbmltYXRlIGF0dHJpYnV0ZU5hbWU9Im9wYWNpdHkiIHZhbHVlcz0iLjI7LjY7LjIiIGR1cj0iMXMiIHJlcGVhdENvdW50PSJpbmRlZmluaXRlIiBiZWdpbj0iLjNzIi8+CiAgPC9lbGxpcHNlPgogIDwhLS0gSG9yaXpvbnRhbCBzdGFiaWxpc2VyIC0tPgogIDxwYXRoIGQ9Ik03Miw2NiBMNTIsMzggUTUwLDM0IDU0LDM0IEw5MiwzNCBROTYsMzQgOTQsMzggTDgyLDY2IiBmaWxsPSIjYjhjMGM4IiBzdHJva2U9IiM4ODk5YWEiIHN0cm9rZS13aWR0aD0iMC43Ii8+CiAgPHBhdGggZD0iTTcyLDk0IEw1MiwxMjIgUTUwLDEyNiA1NCwxMjYgTDkyLDEyNiBROTYsMTI2IDk0LDEyMiBMODIsOTQiIGZpbGw9IiNiOGMwYzgiIHN0cm9rZT0iIzg4OTlhYSIgc3Ryb2tlLXdpZHRoPSIwLjciLz4KICA8IS0tIFZlcnRpY2FsIHN0YWJpbGlzZXIgKyB0YWlsIC0tPgogIDxwYXRoIGQ9Ik03Niw2MCBMNTIsMjggUTQ4LDIyIDU2LDIyIEw4MiwzNCBMODIsNjAiIGZpbGw9IiMxYTNhN2EiIHN0cm9rZT0iIzBkMjU1NyIgc3Ryb2tlLXdpZHRoPSIwLjgiLz4KICA8IS0tIFRhaWwgbG9nbyBhcmVhIC0tPgogIDxjaXJjbGUgY3g9IjY2IiBjeT0iNDIiIHI9IjYiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIuMyIvPgogIDwhLS0gRG9vciBsaW5lcyAtLT4KICA8bGluZSB4MT0iMTA1IiB5MT0iNjIiIHgyPSIxMDUiIHkyPSI5OCIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuMyIgb3BhY2l0eT0iLjUiLz4KICA8bGluZSB4MT0iMjYwIiB5MT0iNjIiIHgyPSIyNjAiIHkyPSI5OCIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuMyIgb3BhY2l0eT0iLjUiLz4KICA8bGluZSB4MT0iMzgwIiB5MT0iNjIiIHgyPSIzODAiIHkyPSI5OCIgc3Ryb2tlPSIjODg5OWFhIiBzdHJva2Utd2lkdGg9IjAuMyIgb3BhY2l0eT0iLjUiLz4KICA8IS0tIE5hbWUgbGFiZWwgLS0+CiAgPHRleHQgeD0iMzIwIiB5PSI4OCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0iIzFhM2E3YSIgZm9udC1mYW1pbHk9InNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iOSIgZm9udC13ZWlnaHQ9IjcwMCIgbGV0dGVyLXNwYWNpbmc9IjIiIG9wYWNpdHk9Ii42Ij5CT0VJTkcgNzQ3PC90ZXh0Pgo8L3N2Zz4=" alt="Boeing 747" style="width:200px;filter:drop-shadow(0 8px 25px rgba(0,0,0,.5))">
+      </div>
+      <svg class="f-arrows" id="fArrows" viewBox="0 0 100 100" preserveAspectRatio="none" style="width:100%;height:100%"></svg>
+      <div class="sim-clouds" id="simClouds"></div>
+      <div class="vapour-box" id="vapourBox"></div>
+      <div class="eng-glow" id="engGlow1" style="width:0;height:0;opacity:0"></div>
+      <div class="eng-glow" id="engGlow2" style="width:0;height:0;opacity:0"></div>
+      <div class="alt-meter">
+        <div class="alt-label">ALT</div>
+        <div class="alt-bar"><div class="alt-fill" id="altFill" style="height:50%"></div></div>
+        <div class="alt-val" id="altVal">5000</div>
+      </div>
+      <div class="spd-meter"><div>SPD</div><b id="spdVal">450</b><span> kts</span></div>
+      <div class="kb-ctrl" id="kbCtrl">
+        <div class="kb-row"><div class="kbtn" id="kUp" onmousedown="kbDown('up')" onmouseup="kbUp('up')" ontouchstart="kbDown('up')" ontouchend="kbUp('up')">&#9650;</div></div>
+        <div class="kb-row">
+          <div class="kbtn" id="kLeft" onmousedown="kbDown('left')" onmouseup="kbUp('left')" ontouchstart="kbDown('left')" ontouchend="kbUp('left')">&#9664;</div>
+          <div class="kbtn" id="kDown" onmousedown="kbDown('down')" onmouseup="kbUp('down')" ontouchstart="kbDown('down')" ontouchend="kbUp('down')">&#9660;</div>
+          <div class="kbtn" id="kRight" onmousedown="kbDown('right')" onmouseup="kbUp('right')" ontouchstart="kbDown('right')" ontouchend="kbUp('right')">&#9654;</div>
+        </div>
+        <div class="kb-tip">ARROW KEYS</div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- SEC 1: LIFT -->
+<div class="sec" id="s2">
+  <div class="cd">
+    <h2>The secret is the wing shape</h2>
+    <p>An aeroplane wing isn't flat — it has a special curved shape called an <span class="hl">aerofoil</span>. The top surface is more curved than the bottom. This is the key to everything!</p>
+  </div>
+
+  <div class="aero-box" id="aeroBox">
+    <div class="particle-layer" id="particles"></div>
+    <svg width="100%" height="100%" viewBox="0 0 500 300" style="position:relative;z-index:5">
+      <!-- Aerofoil shape -->
+      <path d="M100,165 Q160,120 250,112 Q340,108 400,130 Q420,140 440,165 Q340,178 250,180 Q160,178 100,165Z" fill="rgba(200,210,220,.9)" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
+      <!-- Chord line -->
+      <line x1="100" y1="165" x2="440" y2="165" stroke="#FF6B35" stroke-width="1.2" stroke-dasharray="6 4" opacity=".6"/>
+      <!-- Top flow arrows -->
+      <g opacity=".7">
+        <path d="M60,80 Q150,72 250,60 Q350,55 460,70" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#arrowB)"/>
+        <path d="M60,100 Q150,90 250,78 Q350,74 460,88" fill="none" stroke="#60a5fa" stroke-width="1.8" marker-end="url(#arrowB)"/>
+        <path d="M60,120 Q150,108 250,96 Q350,93 460,106" fill="none" stroke="#60a5fa" stroke-width="1.5"/>
+      </g>
+      <!-- Bottom flow arrows -->
+      <g opacity=".45">
+        <path d="M60,200 Q150,195 250,192 Q350,190 460,195" fill="none" stroke="#94a3b8" stroke-width="1.2" marker-end="url(#arrowG)"/>
+        <path d="M60,225 Q150,222 250,220 Q350,218 460,222" fill="none" stroke="#94a3b8" stroke-width="1.2"/>
+        <path d="M60,248 Q150,246 250,245 Q350,244 460,246" fill="none" stroke="#94a3b8" stroke-width="1"/>
+      </g>
+      <!-- Pressure labels -->
+      <text x="250" y="50" text-anchor="middle" fill="#60a5fa" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700">LOW PRESSURE</text>
+      <text x="250" y="66" text-anchor="middle" fill="rgba(96,165,250,.6)" font-family="Outfit,sans-serif" font-size="10">Air moves FASTER over the curve</text>
+      <text x="250" y="216" text-anchor="middle" fill="#94a3b8" font-family="JetBrains Mono,monospace" font-size="12" font-weight="700">HIGH PRESSURE</text>
+      <text x="250" y="232" text-anchor="middle" fill="rgba(148,163,184,.5)" font-family="Outfit,sans-serif" font-size="10">Air moves SLOWER underneath</text>
+      <!-- Big lift arrow -->
+      <line x1="250" y1="105" x2="250" y2="20" stroke="#34d399" stroke-width="3.5" stroke-linecap="round"/>
+      <polygon points="240,24 250,6 260,24" fill="#34d399"/>
+      <text x="278" y="16" fill="#34d399" font-family="JetBrains Mono,monospace" font-size="13" font-weight="700">LIFT!</text>
+      <!-- Labels -->
+      <text x="106" y="172" fill="#FF6B35" font-family="Outfit,sans-serif" font-size="10" font-weight="600">leading edge</text>
+      <text x="395" y="172" fill="rgba(255,255,255,.4)" font-family="Outfit,sans-serif" font-size="10">trailing edge</text>
+      <!-- Arrow markers -->
+      <defs>
+        <marker id="arrowB" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#60a5fa" stroke-width="1.5"/></marker>
+        <marker id="arrowG" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M2 2L8 5L2 8" fill="none" stroke="#94a3b8" stroke-width="1.5"/></marker>
+      </defs>
+    </svg>
+  </div>
+
+  <div class="cd">
+    <h3>Bernoulli's principle</h3>
+    <p>The curved top forces air to travel a <span class="hl">longer distance</span>. The air speeds up to keep pace. Faster air = <span class="hl">lower pressure</span> (Bernoulli's principle). The higher pressure underneath pushes the wing upward — that's lift!</p>
+  </div>
+
+  <div class="fact"><b>&#128161; Try this RIGHT NOW:</b> Hold a sheet of paper by the short edge near your mouth so it droops down. Blow hard OVER the top. The paper rises and levels out! You just created lift with your breath — the exact same physics holding a 400-tonne plane in the sky.</div>
+
+  <div class="cd">
+    <h3>You've felt Bernoulli without knowing it!</h3>
+    <p><span class="hl">Shower curtain attacking you?</span> When hot water flows fast inside the shower, it creates low pressure. Normal air pressure outside pushes the curtain inward. Same principle as lift!<br><br><span class="hl">Car window at speed?</span> Open your car window on the motorway and feel the air rushing past the opening. Papers and light objects get sucked TOWARD the window — fast air outside = low pressure pulling things out.<br><br><span class="hl">Two buses passing each other?</span> Fast air squeezed between them creates low pressure, pulling them together. Bus drivers are trained for this!</p>
+  </div>
+
+  <div class="cd">
+    <h3>Angle of attack</h3>
+    <p>Pilots can tilt the wing slightly upward (the <span class="hl">angle of attack</span>). This deflects more air downward, and by <span class="hl2">Newton's Third Law</span> (every action has an equal and opposite reaction), the wing gets pushed UP even more. But too steep and the air breaks away — the wing <span class="hl">stalls</span> and loses lift!</p>
+  </div>
+
+  <div class="fact"><b>&#128075; Try this at home:</b> Stick your hand out a car window at speed (carefully, with a parent driving slowly!). Hold your hand flat, fingers together, and tilt it slightly upward. Your hand lifts powerfully! Tilt too far and it suddenly loses lift and drops — you just experienced a stall! Now you know exactly what a pilot feels.</div>
+
+  <div class="cd">
+    <h3>Why do planes have curved wingtips?</h3>
+    <p>Those curved tips are called <span class="hl">winglets</span>. High pressure air from underneath tries to curl around the wingtip to the low pressure area above, creating mini tornadoes (<span class="hl2">vortices</span>). Winglets block this, reducing drag by up to <span class="hl">6%</span> and saving millions of litres of fuel every year!</p>
+  </div>
+
+  <div class="fact"><b>&#127968; Spot this in real life:</b> Next time you see a plane overhead, look at the wingtips — those upward-curved winglets are on almost every modern airliner. They save each plane about 200,000 litres of fuel per year. The Boeing 737 MAX's winglets are so distinctive they're split into two — one pointing up, one down!</div>
+
+  <div class="cd">
+    <h3>How fast must air go to create lift?</h3>
+    <p>A typical commercial plane needs to reach about <span class="hl">250-290 km/h</span> on the runway before there's enough air flowing over the wings to generate enough lift. That's why runways are 2-4 km long! Once airborne, planes cruise at <span class="hl2">800-950 km/h</span>, generating enormous lift. A Cessna light aircraft, with much less weight, only needs about 100 km/h.</p>
+  </div>
+</div>
+
+<!-- SEC 2: REAL-WORLD AERODYNAMICS -->
+<div class="sec" id="s3">
+  <div class="cd">
+    <h2>Aerodynamics in the real world</h2>
+    <p>Aerodynamics isn't just about aeroplanes — it's everywhere! From the football you kick to the car you ride in. Click each concept below to explore it, and try the experiments at home.</p>
+  </div>
+
+  <div class="pgrid" id="aeroGrid"></div>
+  <div class="pdetail" id="aeroDetail"></div>
+
+  <div class="cd" style="margin-top:16px">
+    <h3>&#128171; Try these at home!</h3>
+    <p>These simple experiments prove real aerodynamic principles — perfect to show during your presentation.</p>
+  </div>
+
+  <div id="experiments"></div>
+</div>
+
+<!-- SEC 3: PILOT ACADEMY -->
+<div class="sec" id="s4">
+  <div id="gameArea">
+    <!-- START -->
+    <div id="gameStart" style="text-align:center;padding:24px 20px">
+      <div style="font-size:48px;margin-bottom:8px">&#9992;</div>
+      <h2 style="font-size:22px;font-weight:700;margin-bottom:4px">Pilot Training Academy</h2>
+      <p style="color:var(--txt2);font-size:13px;margin-bottom:6px">3 challenges. ~40 seconds. Earn your wings!</p>
+      <div style="display:flex;gap:8px;justify-content:center;margin:8px 0;font-size:10px">
+        <span style="padding:4px 12px;border-radius:6px;background:#cd7f32;color:#fff;font-weight:700">Bronze</span>
+        <span style="padding:4px 12px;border-radius:6px;background:#c0c0c0;color:#333;font-weight:700">Silver</span>
+        <span style="padding:4px 12px;border-radius:6px;background:#ffd700;color:#333;font-weight:700">Gold</span>
+      </div>
+      <div style="display:flex;gap:6px;justify-content:center;margin:12px 0;flex-wrap:wrap">
+        <div style="padding:8px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);font-size:11px;text-align:center;min-width:95px">
+          <div style="font-size:16px">&#128218;</div><b>Phase 1</b><br><span style="color:var(--txt3)">Quiz (10 Qs)</span>
+        </div>
+        <div style="padding:8px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);font-size:11px;text-align:center;min-width:95px">
+          <div style="font-size:16px">&#9992;</div><b>Phase 2</b><br><span style="color:var(--txt3)">Steady flight</span>
+        </div>
+        <div style="padding:8px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border);font-size:11px;text-align:center;min-width:95px">
+          <div style="font-size:16px">&#128747;</div><b>Phase 3</b><br><span style="color:var(--txt3)">Safe landing</span>
+        </div>
+      </div>
+      <input type="text" id="playerName" placeholder="Your name, pilot..." maxlength="20" autocomplete="off" style="font-size:16px;padding:12px 16px;border-radius:12px;border:1px solid var(--border);background:var(--card2);color:var(--txt);font-family:inherit;width:100%;max-width:260px;text-align:center;outline:none">
+      <div style="margin-top:12px">
+        <button class="btn btn1" onclick="startAcademy()" style="font-size:15px;padding:14px 36px">Begin training &#9992;</button>
+        <div style="margin-top:6px;font-size:11px;color:var(--txt3)">or press <b>SPACE</b> / tap to start</div>
+      </div>
+    </div>
+    <!-- PLAY -->
+    <div id="gamePlay" style="display:none">
+      <div class="hud">
+        <div class="hud-box"><div class="hud-label">Phase</div><div class="hud-num" id="hPhase" style="color:var(--blue)">1/3</div></div>
+        <div class="hud-box"><div class="hud-label">Time</div><div class="hud-num" id="hTimer" style="color:var(--accent2)">15</div></div>
+        <div class="hud-box"><div class="hud-label">Score</div><div class="hud-num" id="hScore" style="color:var(--green)">0</div></div>
+      </div>
+      <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+      <div id="phaseTitle" style="text-align:center;font-size:13px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px"></div>
+      <div id="phaseInstr" style="text-align:center;font-size:12px;color:var(--txt3);margin-bottom:8px"></div>
+      <div id="qContainer"></div>
+      <div id="missionSim" style="display:none;position:relative;width:100%;height:240px;border-radius:12px;overflow:hidden;background:linear-gradient(180deg,#0d1a38 0%,#1b3f72 25%,#4a90d9 55%,#87CEEB 75%,#a8d8ea 88%,#6da832 93%,#4a8c20 100%)">
+        <div id="mPlane" style="position:absolute;left:50%;transform:translateX(-50%);top:110px;z-index:10;font-size:32px;filter:drop-shadow(0 4px 12px rgba(0,0,0,.4))">&#9992;</div>
+        <!-- Zone lines for phase 2 -->
+        <div id="mZones" style="display:none;position:absolute;inset:0;z-index:3"></div>
+        <!-- Ground target for phase 3 -->
+        <div id="mGround" style="display:none;position:absolute;left:5%;right:5%;top:215px;height:3px;background:var(--green);z-index:5;border-radius:2px;box-shadow:0 0 10px var(--green)"></div>
+        <div style="position:absolute;right:8px;top:8px;font-family:JetBrains Mono,monospace;font-size:11px;color:rgba(255,255,255,.7);background:rgba(0,0,0,.3);padding:4px 8px;border-radius:6px;z-index:20" id="mAlt">0 ft</div>
+        <div style="position:absolute;left:8px;bottom:8px;font-size:10px;color:rgba(255,255,255,.6);z-index:20" id="mHint"></div>
+        <div style="position:absolute;right:8px;bottom:8px;font-family:JetBrains Mono,monospace;font-size:14px;font-weight:700;color:var(--green);z-index:20" id="mPoints">+0</div>
+      </div>
+    </div>
+    <!-- RESULTS -->
+    <div id="gameResults" style="display:none"></div>
+  </div>
+</div>
+
+<!-- SEC 4: LEADERBOARD -->
+<div class="sec" id="s5">
+  <div class="cd">
+    <h2>&#127942; Leaderboard</h2>
+    <p>Today's trainee pilots! Complete the Pilot Training Academy to earn your wings.</p>
+  </div>
+  <div class="cd lb" id="lbCard"></div>
+  <div class="lb-actions">
+    <button class="btn btn1" onclick="go(4)">Take the challenge &#10132;</button>
+    <button class="btn btn2" onclick="exportLB()">&#128203; Copy results</button>
+    <button class="btn btn2" onclick="refreshLB()" title="Refresh scores">&#128260; Refresh</button>
+    <button class="btn btn2 admin-btn" id="editBtn" style="display:none" onclick="toggleEditMode()">&#9998; Edit entries</button>
+    <button class="btn btn2 admin-btn" id="resetBtn" style="display:none" onclick="confirmReset()">&#128465; Reset all</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<div style="text-align:center;padding:40px 20px;color:var(--txt3);font-size:12px">
+  <img src="https://www.stmargarets-school.org.uk/assets/img/svg/logo-black.svg" alt="St Margaret's" class="footer-logo" style="height:30px;opacity:.4;margin-bottom:8px;display:block;margin-left:auto;margin-right:auto" onerror="this.style.display='none'">
+  <b style="color:var(--accent)">Presented by Aarav B, John Z, Adam-Zak</b> &mdash; St Margaret&rsquo;s School, Bushey &mdash; STEM Fair 2026
+  <div style="margin-top:4px;font-size:10px;color:var(--txt3)">Built with curiosity &amp; code by Aarav B (STEM and Academic Scholar)</div>
+</div>
+
+<script>
+// ===== NAV =====
+function go(i){
+  document.querySelectorAll('.nbtn').forEach((b,j)=>{b.classList.toggle('on',j===i)});
+  document.querySelectorAll('.sec').forEach((s,j)=>{s.classList.toggle('on',j===i)});
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(i===5) renderLB();
+}
+
+// ===== HERO SETUP =====
+(function(){
+  const starsEl=document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');s.className='star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;width:${1+Math.random()*2}px;height:${1+Math.random()*2}px;--d:${2+Math.random()*4}s;--del:${Math.random()*3}s`;
+    starsEl.appendChild(s);
+  }
+  const cloudsEl=document.getElementById('clouds');
+  for(let i=0;i<4;i++){
+    const c=document.createElement('div');c.className='cld';
+    c.style.cssText=`width:${100+Math.random()*120}px;top:${Math.random()*60}px;--s:${18+Math.random()*15}s;--del:${-Math.random()*20}s`;
+    cloudsEl.appendChild(c);
+  }
+})();
+
+// ===== FORCE SIMULATOR =====
+// Ground level is ~350px top (near bottom of sim-box, above the green)
+const GROUND=340, CEILING=30, CRUISE=160;
+let flightState='ground';
+let targetPlaneY=GROUND; // smooth interpolation target
+
+function updateSim(){
+  const thrust=+document.getElementById('sThrust').value;
+  const angle=+document.getElementById('sAngle').value;
+  const flaps=+document.getElementById('sFlaps').value; // 0-4 stages
+  const flapDeg=[0,10,20,30,40][flaps];
+  document.getElementById('vThrust').textContent=thrust+'%';
+  document.getElementById('vAngle').textContent=(angle/10).toFixed(1)+'°';
+  document.getElementById('vFlaps').textContent=flapDeg+'°';
+
+  // === HOW REAL CONTROLS CONNECT TO THE FOUR FORCES ===
+  //
+  // THROTTLE  → engine power → SPEED → air over wings → THRUST (forward force)
+  // YOKE      → elevator → nose angle → angle of attack → LIFT (up force) + some DRAG
+  // FLAPS     → extend wing surface → more LIFT at low speed + more DRAG
+  // WEIGHT    → constant! Gravity never changes. You can't control it.
+  //
+  const speed = thrust * 0.8;                                        // throttle → speed
+  const lift = (speed * 0.4) + (angle * 0.35) + (flaps * 6) + 5;   // speed + yoke + flaps → lift
+  const weight = 50;                                                  // gravity (constant)
+  const thr = 10 + (thrust * 0.6);                                   // throttle → thrust force
+  const drag = 3 + (speed * 0.12) + (angle * 0.18) + (flaps * 4);  // speed + yoke + flaps → drag
+  const liftDiff = lift - weight;
+
+  // Plane position — gradual, not instant
+  // REALISTIC: you need enough speed AND wing angle to fly
+  // Flaps help at low speed, but with flaps=0 you need MORE speed+angle
+  const minLiftForFlight = 50; // must beat weight (50) to fly
+  const canFly = lift >= minLiftForFlight;
+
+  let targetY;
+  if(thrust < 8){
+    targetY = GROUND;
+    flightState = 'ground';
+  } else if(!canFly){
+    targetY = GROUND;
+    flightState = thrust > 12 ? 'rolling' : 'ground';
+  } else {
+    targetY = CRUISE - (liftDiff) * 2;
+    targetY = Math.max(CEILING, Math.min(GROUND - 25, targetY));
+    if(targetY > GROUND - 50) flightState = liftDiff > 0 ? 'takeoff' : 'landing';
+    else if(liftDiff > 6) flightState = 'climbing';
+    else if(liftDiff < -6) flightState = 'descending';
+    else flightState = 'cruising';
+  }
+  targetPlaneY = targetY;
+
+  // Smooth interpolation — plane moves gradually, not jumping
+  const simEl = document.getElementById('simPlane');
+  if(!simEl || !simEl.offsetParent) return; // skip if tab is hidden
+  const currentY = parseFloat(simEl.style.top) || GROUND;
+  const smoothY = currentY + (targetPlaneY - currentY) * 0.08; // 8% per frame = very smooth
+  document.getElementById('simPlane').style.top = Math.round(smoothY) + 'px';
+
+  // Tilt plane nose
+  let tilt = 0;
+  if(flightState === 'climbing' || flightState === 'takeoff') tilt = Math.max(-15, -(liftDiff) * 0.3);
+  else if(flightState === 'descending' || flightState === 'landing') tilt = Math.min(10, -(liftDiff) * 0.25);
+  else if(flightState === 'cruising') tilt = -(liftDiff) * 0.08;
+  const planeEl = document.querySelector('#simPlane img, #simPlane svg');
+  if(planeEl) planeEl.style.transform = `rotate(${tilt}deg)`;
+
+  // Status chips
+  const row = document.getElementById('statusRow');
+  const stateInfo = {
+    ground:     {label:'On the ground', color:'var(--txt3)', icon:'&#9899;'},
+    rolling:    {label:'Rolling on runway...', color:'var(--blue)', icon:'&#10132;'},
+    takeoff:    {label:'TAKING OFF!', color:'var(--accent)', icon:'&#128640;'},
+    climbing:   {label:'Climbing higher', color:'var(--green)', icon:'&#9650;'},
+    cruising:   {label:'Cruising steady', color:'var(--accent2)', icon:'&#9992;'},
+    descending: {label:'Going down', color:'var(--red)', icon:'&#9660;'},
+    landing:    {label:'Coming in to land', color:'var(--accent)', icon:'&#128747;'},
+  };
+  const si = stateInfo[flightState] || stateInfo.ground;
+  row.innerHTML = `<div class="chip" style="background:rgba(255,255,255,.05);color:${si.color}">${si.icon} ${si.label}</div>`;
+
+  // ===== EXPLANATION — shows HOW cockpit controls connect to forces =====
+  let explain = '<div style="margin-bottom:14px">';
+  explain += '<div style="font-size:13px;color:var(--txt);margin-bottom:10px;font-weight:700">HOW YOUR CONTROLS CREATE THE FORCES:</div>';
+
+  explain += '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">';
+  explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(96,165,250,.12);color:var(--blue);font-weight:700">Throttle ${Math.round(thrust)}%</span>`;
+  explain += `<span style="color:var(--txt3)">&#10132; speed ${Math.round(speed)} &#10132;</span>`;
+  explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(96,165,250,.12);color:var(--blue);font-weight:700">Thrust ${Math.round(thr)}</span>`;
+  explain += `<span style="color:var(--txt3)">+</span>`;
+  explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(52,211,153,.12);color:var(--green);font-weight:700">Lift ${Math.round(lift)}</span>`;
+  explain += '</div>';
+
+  explain += '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">';
+  explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(255,107,53,.12);color:var(--accent);font-weight:700">Yoke ${(angle/10).toFixed(1)}°</span>`;
+  explain += `<span style="color:var(--txt3)">&#10132; nose angle &#10132; more lift BUT more</span>`;
+  explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(247,201,72,.12);color:var(--accent2);font-weight:700">Drag ${Math.round(drag)}</span>`;
+  explain += '</div>';
+
+  if(flaps > 0){
+    explain += '<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:8px;font-size:13px">';
+    explain += `<span style="padding:5px 12px;border-radius:6px;background:rgba(52,211,153,.12);color:var(--green);font-weight:700">Flaps ${flapDeg}°</span>`;
+    explain += `<span style="color:var(--txt3)">&#10132; bigger wing &#10132; +${flaps*6} lift, +${flaps*4} drag</span>`;
+    explain += '</div>';
+  }
+
+  explain += '<div style="padding:8px 12px;border-radius:8px;margin-top:10px;font-size:14px;font-weight:700;' +
+    (lift > weight + 3 ? 'background:rgba(52,211,153,.1);color:var(--green)' :
+     lift < weight - 3 ? 'background:rgba(248,113,113,.1);color:var(--red)' :
+     'background:rgba(247,201,72,.1);color:var(--accent2)') + '">';
+  explain += lift > weight + 3 ? `Lift (${Math.round(lift)}) BEATS Weight (${Math.round(weight)}) &#10132; plane goes UP` :
+             lift < weight - 3 ? `Weight (${Math.round(weight)}) BEATS Lift (${Math.round(lift)}) &#10132; plane goes DOWN` :
+             `Lift (${Math.round(lift)}) &#8776; Weight (${Math.round(weight)}) &#10132; plane stays LEVEL`;
+  explain += '</div>';
+  explain += '</div>';
+
+  // What's happening — simple language
+  let msg = '<div style="font-size:15px;line-height:1.7">';
+  switch(flightState){
+    case 'ground':
+      msg += `<b>&#9899; Parked on the runway.</b> The throttle is at zero — engines are idle. The yoke is centred — nose pointing straight. No air flowing over the wings means zero lift. It's like a kite lying on the grass with no wind.<br><br>`;
+      msg += `<span style="color:var(--accent)">&#127918; Push the <b>throttle</b> (&#9654; Right key) to power up, then pull the <b>yoke</b> back (&#9650; Up key) to lift the nose and take off!</span>`;
+      break;
+    case 'rolling':
+      msg += `<b>&#10132; Rolling down the runway!</b> The throttle is giving you speed, but the yoke isn't pulled back enough. The wings need more angle to scoop the air and create lift.<br><br>`;
+      msg += `Look at the numbers: lift is ${Math.round(lift)} but weight is ${Math.round(weight)}. You need lift to beat weight! <span style="color:var(--accent)">Pull the <b>yoke</b> back (&#9650; Up) or add <b>flaps</b> (F key) for extra lift!</span>`;
+      break;
+    case 'takeoff':
+      msg += `<b>&#128640; LIFTOFF!</b> The lift arrow just got bigger than the weight arrow! The wings are finally pushing harder than gravity pulls. The nose tilts up and the wheels leave the ground!<br><br>`;
+      msg += `<span style="color:var(--txt3)">This is the moment every pilot trains for. A real 747 needs 290 km/h for this to happen — that's faster than a Formula 1 car!</span>`;
+      break;
+    case 'climbing':
+      msg += `<b style="color:var(--green)">&#9650; Climbing!</b> Lift (${Math.round(lift)}) is bigger than weight (${Math.round(weight)}), so the plane goes up. The bigger the gap, the faster you climb.<br><br>`;
+      if(smoothY < 80) msg += `<span style="color:var(--accent2)">&#9888; You're super high! In real life, air gets thinner up here so wings make less lift. Try reducing the angle a bit to level off.</span>`;
+      else msg += `<span style="color:var(--txt3)">It's like going up on a swing — the harder you push (more lift), the higher you go. But gravity never stops pulling, so you always need lift to stay up.</span>`;
+      break;
+    case 'cruising':
+      msg += `<b style="color:var(--accent2)">&#9992; Perfect cruise!</b> All four forces are balanced. Lift &#8776; Weight, Thrust &#8776; Drag. The plane isn't going up or down, and it's not speeding up or slowing down. This is the sweet spot.<br><br>`;
+      msg += `<span style="color:var(--txt3)">Real planes cruise like this for hours. The pilots set the autopilot and the plane basically flies itself. A London to New York flight cruises at about 900 km/h for 7 hours like this.</span>`;
+      break;
+    case 'descending':
+      msg += `<b style="color:var(--red)">&#9660; Sinking!</b> Weight (${Math.round(weight)}) is bigger than lift (${Math.round(lift)}). Gravity wins, so the plane drops. The nose is pointing down.<br><br>`;
+      if(smoothY > GROUND - 70) msg += `<span style="color:var(--accent)">&#9888; Getting low! Press &#9650; Up or &#9654; Right to pull up before you hit the ground!</span>`;
+      else msg += `<span style="color:var(--txt3)">To stop sinking: more thrust (&#9654; Right) gives more speed, which gives more lift. Or tilt the wings more (&#9650; Up) to deflect more air downward.</span>`;
+      break;
+    case 'landing':
+      msg += `<b style="color:var(--accent)">&#128747; Almost on the ground!</b> If you keep reducing thrust and wing angle, the plane will touch down. Real pilots lower the flaps here to get extra lift at low speed, then gently cut the engines to land softly.<br><br>`;
+      msg += `<span style="color:var(--txt3)">Landing speed is about 250 km/h. Once the wheels touch, pilots use reverse thrust (engines blow FORWARD!) and brakes to stop.</span>`;
+      break;
+  }
+  msg += '</div>';
+  document.getElementById('simExplainText').innerHTML = explain + msg;
+
+  drawForceArrows(lift, weight, thr, drag, smoothY);
+}
+function drawForceArrows(lift,weight,thr,drag,planeY){
+  const svg=document.getElementById('fArrows');
+  const box=document.getElementById('simBox');
+  const W=box.offsetWidth,H=box.offsetHeight;
+  if(!H||!W){svg.innerHTML='';return} // guard: tab is hidden, skip drawing
+  const cx=50,cy=Math.min(95,Math.max(5,(planeY+40)/H*100)); // percentage coords, clamped
+  const sc=.35;
+  const lH=Math.min(lift*sc,30),wH=Math.min(weight*sc,30),tW=Math.min(thr*sc,25),dW=Math.min(drag*sc,20);
+  svg.innerHTML=`
+    <line x1="${cx}" y1="${cy-5}" x2="${cx}" y2="${cy-5-lH}" stroke="#34d399" stroke-width=".8" stroke-linecap="round"/>
+    <polygon points="${cx-1.5},${cy-4-lH} ${cx},${cy-7-lH} ${cx+1.5},${cy-4-lH}" fill="#34d399"/>
+    <text x="${cx}" y="${cy-8-lH}" text-anchor="middle" fill="#34d399" font-family="JetBrains Mono" font-size="2.5" font-weight="700">LIFT</text>
+    <line x1="${cx}" y1="${cy+8}" x2="${cx}" y2="${cy+8+wH}" stroke="#f87171" stroke-width=".8" stroke-linecap="round"/>
+    <polygon points="${cx-1.5},${cy+7+wH} ${cx},${cy+10+wH} ${cx+1.5},${cy+7+wH}" fill="#f87171"/>
+    <text x="${cx}" y="${cy+14+wH}" text-anchor="middle" fill="#f87171" font-family="JetBrains Mono" font-size="2.5" font-weight="700">WEIGHT</text>
+    <line x1="${cx+14}" y1="${cy+2}" x2="${cx+14+tW}" y2="${cy+2}" stroke="#60a5fa" stroke-width=".8" stroke-linecap="round"/>
+    <polygon points="${cx+13+tW},${cy+.5} ${cx+16+tW},${cy+2} ${cx+13+tW},${cy+3.5}" fill="#60a5fa"/>
+    <text x="${cx+17+tW}" y="${cy+3}" fill="#60a5fa" font-family="JetBrains Mono" font-size="2.5" font-weight="700">THRUST</text>
+    <line x1="${cx-14}" y1="${cy+2}" x2="${cx-14-dW}" y2="${cy+2}" stroke="#F7C948" stroke-width=".8" stroke-linecap="round"/>
+    <polygon points="${cx-13-dW},${cy+.5} ${cx-16-dW},${cy+2} ${cx-13-dW},${cy+3.5}" fill="#F7C948"/>
+    <text x="${cx-17-dW}" y="${cy+3}" text-anchor="end" fill="#F7C948" font-family="JetBrains Mono" font-size="2.5" font-weight="700">DRAG</text>`;
+}
+updateSim();
+
+// ===== KEYBOARD & VISUAL EFFECTS =====
+// Sim clouds
+(function(){
+  const box=document.getElementById('simClouds');
+  for(let i=0;i<8;i++){
+    const c=document.createElement('div');c.className='scld';
+    const w=60+Math.random()*100;
+    const y=20+Math.random()*280;
+    const spd=8+Math.random()*12;
+    c.style.cssText=`width:${w}px;top:${y}px;animation:scloud ${spd}s linear infinite ${-Math.random()*spd}s`;
+    c.dataset.baseSpd=spd;
+    box.appendChild(c);
+  }
+})();
+
+// Keyboard state
+let keys={up:false,down:false,left:false,right:false};
+let kbInterval=null;
+
+function kbDown(dir){
+  keys[dir]=true;
+  const el=document.getElementById('k'+dir.charAt(0).toUpperCase()+dir.slice(1));
+  if(el)el.classList.add('on');
+}
+function kbUp(dir){
+  keys[dir]=false;
+  const el=document.getElementById('k'+dir.charAt(0).toUpperCase()+dir.slice(1));
+  if(el)el.classList.remove('on');
+}
+
+// Arrow key listeners
+document.addEventListener('keydown',e=>{
+  if(e.repeat)return;
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.key]){e.preventDefault();kbDown(map[e.key])}
+  // F key toggles flaps up one stage
+  if(e.key==='f'||e.key==='F'){
+    const fSlider=document.getElementById('sFlaps');
+    fSlider.value=(+fSlider.value+1)%5;
+    updateSim();
+  }
+});
+document.addEventListener('keyup',e=>{
+  const map={ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'};
+  if(map[e.key])kbUp(map[e.key]);
+});
+
+// Continuous update loop for keyboard
+let cloudSpeedMult=1;
+let vapourTimer=0;
+let smoothPlaneY=GROUND; // for smooth interpolation
+setInterval(()=>{
+  let changed=false;
+  const tSlider=document.getElementById('sThrust');
+  const aSlider=document.getElementById('sAngle');
+  if(keys.right&&+tSlider.value<100){tSlider.value=+tSlider.value+1;changed=true}
+  if(keys.left&&+tSlider.value>0){tSlider.value=+tSlider.value-1;changed=true}
+  if(keys.up&&+aSlider.value<100){aSlider.value=+aSlider.value+1;changed=true}
+  if(keys.down&&+aSlider.value>0){aSlider.value=+aSlider.value-1;changed=true}
+  if(changed)updateSim();
+
+  // Update visual effects
+  updateVisualEffects();
+},60);
+
+function updateVisualEffects(){
+  const thrust=+document.getElementById('sThrust').value;
+  const angle=+document.getElementById('sAngle').value;
+  const lift=15+(thrust*.45)+(angle*.35);
+  const weight=50;
+  const thr=10+(thrust*.6);
+
+  // Altitude meter (0-10000 ft based on plane position)
+  const planeTop=parseFloat(document.getElementById('simPlane').style.top)||160;
+  const altPct=Math.max(0,Math.min(100,((320-planeTop)/280)*100));
+  const altFt=Math.round(altPct*100);
+  document.getElementById('altFill').style.height=altPct+'%';
+  document.getElementById('altVal').textContent=altFt<1000?altFt:Math.round(altFt/100)/10+'k';
+
+  // Speed indicator
+  const speed=Math.round(200+thrust*6);
+  document.getElementById('spdVal').textContent=speed;
+
+  // Cloud speed - faster when more thrust
+  const targetMult=0.3+(thrust/100)*2.5;
+  cloudSpeedMult+=(targetMult-cloudSpeedMult)*.1;
+  document.querySelectorAll('.scld').forEach(c=>{
+    const base=parseFloat(c.dataset.baseSpd);
+    const newSpd=Math.max(1,base/cloudSpeedMult);
+    c.style.animationDuration=newSpd+'s';
+  });
+
+  // Engine glow - bigger with more thrust
+  const glowSize=Math.round(10+thrust*.4);
+  const glowOpacity=.2+(thrust/100)*.6;
+  const sp=document.getElementById('simPlane');
+  const spRect=sp.getBoundingClientRect();
+  const boxRect=document.getElementById('simBox').getBoundingClientRect();
+  // Position glows near the back-left of the plane image
+  const planeLeft=spRect.left-boxRect.left;
+  const planeTopPx=spRect.top-boxRect.top;
+  const g1=document.getElementById('engGlow1');
+  const g2=document.getElementById('engGlow2');
+  g1.style.cssText=`width:${glowSize}px;height:${glowSize*.6}px;opacity:${glowOpacity};left:${planeLeft+10}px;top:${planeTopPx+12}px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.7),transparent 70%);position:absolute;z-index:9;pointer-events:none;transition:width .3s,height .3s,opacity .3s`;
+  g2.style.cssText=`width:${glowSize}px;height:${glowSize*.6}px;opacity:${glowOpacity};left:${planeLeft+10}px;top:${planeTopPx+55}px;border-radius:50%;background:radial-gradient(circle,rgba(255,107,53,.7),transparent 70%);position:absolute;z-index:9;pointer-events:none;transition:width .3s,height .3s,opacity .3s`;
+
+  // Vapour trails - emit when climbing fast
+  vapourTimer++;
+  if((lift>weight+8)&&thrust>30&&vapourTimer%4===0){
+    spawnVapour(planeLeft+20,planeTopPx+8);
+    spawnVapour(planeLeft+20,planeTopPx+62);
+  }
+  if(thrust>70&&vapourTimer%3===0){
+    spawnVapour(planeLeft+2,planeTopPx+14);
+    spawnVapour(planeLeft+2,planeTopPx+56);
+  }
+}
+
+function spawnVapour(x,y){
+  const box=document.getElementById('vapourBox');
+  const v=document.createElement('div');v.className='vp';
+  const sz=4+Math.random()*4;
+  v.style.cssText=`left:${x}px;top:${y+Math.random()*6-3}px;width:${sz}px;height:${sz}px`;
+  box.appendChild(v);
+  setTimeout(()=>v.remove(),2000);
+}
+
+// ===== AEROFOIL PARTICLES =====
+(function(){
+  const box=document.getElementById('particles');
+  for(let i=0;i<18;i++){
+    const p=document.createElement('div');
+    const isTop=i<11;
+    p.className='airp '+(isTop?'top':'bot');
+    const y=isTop?(30+Math.random()*70):(180+Math.random()*50);
+    const speed=isTop?(2.5+Math.random()*1.5):(4+Math.random()*2);
+    p.style.cssText=`top:${y}px;--s:${speed}s;--del:${-Math.random()*speed}s;width:${3+Math.random()*3}px;height:${3+Math.random()*3}px`;
+    box.appendChild(p);
+  }
+})();
+
+// ===== REAL-WORLD AERODYNAMICS =====
+const aeroConcepts={
+  streamlining:{name:'Streamlining',emoji:'&#128663;',role:'Reducing drag',desc:'<b>What is it?</b> Shaping an object so air flows smoothly around it instead of creating turbulence behind it.<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Bullet trains</span> — the Shinkansen\'s nose is 15 metres long, inspired by the kingfisher bird\'s beak, to cut through air and reduce noise<br>&#8226; <span style="color:var(--accent)">Racing cyclists</span> tuck into a low position and wear teardrop helmets to halve their drag<br>&#8226; <span style="color:var(--accent)">Sports cars</span> have sloped fronts and smooth underbodies — a Ferrari has drag coefficient of just 0.33<br>&#8226; Even <span style="color:var(--accent)">swimming costumes</span> use tiny ridges (like shark skin) to reduce water drag by 6%<br><br><b>Why it matters for planes:</b> A non-streamlined shape would need 3-4 times more engine power. The Boeing 787\'s smooth nose, blended wing roots, and swept wings reduce drag so much that it uses 20% less fuel than older planes.'},
+  bernoulli:{name:'Bernoulli\'s Principle',emoji:'&#127744;',role:'How pressure creates lift',desc:'<b>What is it?</b> When a fluid (air or water) speeds up, its pressure drops. Slow fluid = high pressure. Fast fluid = low pressure. The pressure difference creates a push.<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Shower curtains</span> — ever noticed the curtain gets sucked inward when you shower? Fast water creates low pressure pulling it in!<br>&#8226; <span style="color:var(--accent)">Football swerve</span> — when a player kicks the ball spinning, one side moves faster through the air than the other, creating a pressure difference that curves the ball (the "banana kick")<br>&#8226; <span style="color:var(--accent)">Passing lorries</span> — when two lorries pass each other on the motorway, fast air between them creates low pressure, pulling them together. That\'s why you feel your car get "sucked" toward a passing HGV<br>&#8226; <span style="color:var(--accent)">Perfume atomisers</span> — squeezing the bulb blows fast air over a tube, low pressure sucks the liquid up<br><br><b>Why it matters for planes:</b> The curved wing top forces air to travel faster, creating low pressure above. Higher pressure below pushes the wing up — that\'s literally how every commercial flight stays in the air.'},
+  newton3:{name:'Newton\'s Third Law',emoji:'&#128640;',role:'Action and reaction',desc:'<b>What is it?</b> Every action has an equal and opposite reaction. Push something one way, it pushes you back the other way, with exactly the same force.<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Rockets</span> — hot gases blast downward out the engine, and the rocket is pushed upward with equal force. This is why rockets work even in the vacuum of space (no air needed!)<br>&#8226; <span style="color:var(--accent)">Swimming</span> — you push water backward with your arms, and the water pushes YOU forward<br>&#8226; <span style="color:var(--accent)">Walking</span> — your foot pushes backward on the ground, friction pushes you forward. Try walking on ice (no friction) and you go nowhere!<br>&#8226; <span style="color:var(--accent)">Guns recoil</span> — the bullet goes forward, the gun kicks backward<br>&#8226; <span style="color:var(--accent)">Releasing a balloon</span> — air rushes out the neck, and the balloon flies the opposite way<br><br><b>Why it matters for planes:</b> Wings deflect air downward. By Newton\'s Third Law, the air pushes the wings upward with equal force — that\'s lift! Jet engines blast air backward, and the reaction pushes the plane forward — that\'s thrust!'},
+  drag:{name:'Drag',emoji:'&#9889;',role:'The invisible brake',desc:'<b>What is it?</b> The resistance force that air pushes against any moving object. The faster you go, the more drag increases — it actually goes up with the SQUARE of speed (double your speed = 4x the drag!).<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Sticking your hand out a car window</span> — palm flat, barely any drag. Turn it sideways and WHOOSH, the air pushes hard. That\'s the difference between a streamlined and blunt shape<br>&#8226; <span style="color:var(--accent)">Parachutes</span> — deliberately maximize drag! A skydiver\'s canopy creates so much drag it slows them from 200 km/h to just 15 km/h<br>&#8226; <span style="color:var(--accent)">Cycling downhill</span> — above 25 km/h, 90% of your pedalling effort goes to fighting air resistance, not rolling resistance<br>&#8226; <span style="color:var(--accent)">Golf ball dimples</span> — surprisingly, dimples REDUCE drag by making air stick closer to the ball. A smooth golf ball would only fly half as far!<br><br><b>Why it matters for planes:</b> At cruising speed (900 km/h), a Boeing 747 fights about 250,000 Newtons of drag — the weight of 12 cars pushing against it. Every tiny improvement in shape saves millions in fuel.'},
+  pressure:{name:'Air Pressure',emoji:'&#127777;',role:'The invisible force',desc:'<b>What is it?</b> Air has weight — the entire atmosphere above you weighs about 10 tonnes per square metre! That\'s air pressure. At sea level it\'s 101,325 Pascals. Higher up, there\'s less air, so pressure drops.<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Your ears popping</span> on a plane — cabin pressure drops as you climb, and the air trapped in your ear pushes outward until it equalises with a "pop"<br>&#8226; <span style="color:var(--accent)">Drinking through a straw</span> — you don\'t actually "suck" liquid up. You reduce pressure in your mouth, and normal air pressure outside pushes the drink up into the straw<br>&#8226; <span style="color:var(--accent)">Vacuum cleaners</span> — the motor creates low pressure inside. Normal air pressure outside pushes air (and dust) in through the nozzle<br>&#8226; <span style="color:var(--accent)">Suction cups</span> — push the air out, low pressure inside holds it to the wall. Regular air pressure does the holding!<br><br><b>Why it matters for planes:</b> The entire principle of flight depends on creating a pressure difference above and below the wing. Commercial planes fly at 10,000 metres where air pressure is only 26% of sea level — that\'s why cabins are pressurised.'},
+  turbulence:{name:'Turbulence',emoji:'&#127786;',role:'Chaotic air flow',desc:'<b>What is it?</b> When smooth (laminar) airflow breaks apart into chaotic, swirling eddies. Imagine a calm river suddenly hitting rocks and becoming white water rapids — that\'s turbulence.<br><br><b>Real-world examples:</b><br>&#8226; <span style="color:var(--accent)">Smoke from a candle</span> — rises smoothly at first (laminar), then suddenly breaks into swirling chaos (turbulent). The exact point it changes depends on speed and temperature<br>&#8226; <span style="color:var(--accent)">Wind behind buildings</span> — ever noticed it\'s extra gusty and swirly behind a tall building? The building creates turbulent wake, just like a rock in a stream<br>&#8226; <span style="color:var(--accent)">Bumpy flights</span> — when your plane hits a patch of turbulence, it\'s flying through air that\'s chaotically swirling, often caused by jet streams, thunderstorms, or mountains deflecting air upward<br>&#8226; <span style="color:var(--accent)">Stirring tea</span> — the swirling patterns when you stir are turbulence. Try adding milk and watch how the turbulent eddies mix it!<br><br><b>Why it matters for planes:</b> Turbulent flow over a wing creates more drag than smooth flow. But a bit of turbulence actually helps prevent stalling at high angles — that\'s why some planes have tiny ridges (vortex generators) on their wings.'},
+};
+
+const experiments=[
+  {title:'The paper aerofoil',emoji:'&#128196;',difficulty:'Easy',time:'30 seconds',items:'A sheet of paper',steps:'Hold a sheet of A4 paper by the short edge so it droops over your hand. Now blow HARD across the top surface. The paper lifts up!',science:'You just demonstrated Bernoulli\'s principle. The fast air you blew over the top has lower pressure than the still air underneath. The pressure difference pushes the paper upward — exactly how a wing creates lift.',wow:'This is the same principle holding a 400-tonne Airbus A380 in the sky!'},
+  {title:'The two-can experiment',emoji:'&#129380;',difficulty:'Easy',time:'1 minute',items:'2 empty drink cans, a straw',steps:'Place two empty cans about 3cm apart on a smooth table. Blow hard through a straw into the gap between them. The cans roll TOWARD each other instead of apart!',science:'Fast air between the cans (Bernoulli\'s principle) creates low pressure. Normal air pressure on the outside pushes the cans inward. This is the same reason two ships passing close together can be dangerously pulled toward each other.',wow:'In 1912, the ocean liner Olympic (Titanic\'s sister) sucked the smaller ship HMS Hawke into a collision — Bernoulli\'s principle at ship scale!'},
+  {title:'The balloon rocket',emoji:'&#127880;',difficulty:'Easy',time:'2 minutes',items:'Balloon, string, straw, tape',steps:'Thread a long string through a straw. Tie the string between two chairs. Blow up a balloon (don\'t tie it), tape it to the straw, and let go. The balloon rockets along the string!',science:'This is Newton\'s Third Law in action. Air rushes out the balloon (action), pushing the balloon forward (reaction). Jet engines work the same way — they blast hot gas backward, and the reaction pushes the plane forward.',wow:'A real jet engine moves air at over 1,500 km/h — your balloon rocket uses the exact same physics!'},
+  {title:'The spoon and water',emoji:'&#129348;',difficulty:'Easy',time:'20 seconds',items:'A spoon, running tap water',steps:'Turn on the tap to a thin, steady stream. Hold the curved back of a spoon close to the stream (don\'t put it directly under). The water bends TOWARD the spoon and the spoon gets pulled into the stream!',science:'The curved spoon surface speeds up the water flowing around it (like a wing\'s curve). Faster water = lower pressure on the spoon side. Normal pressure on the other side pushes the spoon toward the water. This is Bernoulli\'s principle with water instead of air.',wow:'This is called the Coandă effect — fluids tend to follow curved surfaces. It\'s used in some modern aircraft engines to direct thrust!'},
+  {title:'The drag race',emoji:'&#128203;',difficulty:'Easy',time:'1 minute',items:'2 sheets of paper',steps:'Take two identical sheets of paper. Scrunch one into a tight ball. Drop both from the same height at the same time. The flat sheet floats down slowly while the ball drops fast.',science:'Both sheets weigh the same, so gravity pulls them equally. The difference is DRAG. The flat sheet has a huge surface area pushing against air (high drag). The ball is streamlined (low drag). This is why planes are shaped like tubes, not cubes!',wow:'At 900 km/h, air resistance on a Boeing 747 is equivalent to the weight of 12 family cars pushing against it. Streamlining saves airlines billions in fuel every year.'},
+  {title:'The spinning ball swerve',emoji:'&#9917;',difficulty:'Medium',time:'2 minutes',items:'A football or tennis ball, outdoor space',steps:'Kick or throw a ball with lots of spin. Watch it curve through the air instead of going straight. A right-spin curves right, left-spin curves left.',science:'This is the Magnus Effect (a special case of Bernoulli\'s principle). The spinning ball drags air faster on one side than the other. The fast-air side has low pressure, the slow-air side has high pressure — the pressure difference pushes the ball sideways into a curve.',wow:'Cristiano Ronaldo\'s famous "knuckleball" free kicks exploit turbulence — he kicks the ball with almost NO spin, making the airflow chaotic and the ball\'s path unpredictable for the goalkeeper!'},
+];
+
+(function(){
+  const g=document.getElementById('aeroGrid');
+  Object.keys(aeroConcepts).forEach(k=>{
+    const c=aeroConcepts[k];
+    g.innerHTML+=`<div class="pbtn" id="ac_${k}" onclick="pickAero('${k}')"><div class="pn">${c.emoji} ${c.name}</div><div class="pr">${c.role}</div></div>`;
+  });
+  const ebox=document.getElementById('experiments');
+  experiments.forEach((ex,i)=>{
+    ebox.innerHTML+=`<div class="cd" style="cursor:pointer;transition:.3s;border-left:3px solid transparent" onclick="this.querySelector('.exp-body').classList.toggle('show');this.style.borderLeftColor=this.style.borderLeftColor==='rgb(255, 107, 53)'?'transparent':'rgb(255, 107, 53)'" id="exp${i}">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:24px">${ex.emoji}</span>
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:600">${ex.title}</div>
+          <div style="font-size:11px;color:var(--txt3)">${ex.difficulty} &bull; ${ex.time} &bull; You need: ${ex.items}</div>
+        </div>
+        <span style="color:var(--txt3);font-size:18px;transition:.3s">+</span>
+      </div>
+      <div class="exp-body" style="display:none;margin-top:14px">
+        <div style="padding:12px 16px;border-radius:10px;background:rgba(255,107,53,.06);margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">What to do</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--txt2)">${ex.steps}</div>
+        </div>
+        <div style="padding:12px 16px;border-radius:10px;background:rgba(96,165,250,.06);margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">The science</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--txt2)">${ex.science}</div>
+        </div>
+        <div style="padding:12px 16px;border-radius:10px;background:rgba(247,201,72,.06)">
+          <div style="font-size:11px;font-weight:700;color:var(--accent2);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Mind-blowing connection</div>
+          <div style="font-size:13px;line-height:1.6;color:var(--txt2)">${ex.wow}</div>
+        </div>
+      </div>
+    </div>`;
+  });
+})();
+// Toggle experiment expand
+document.querySelectorAll('.exp-body').forEach(b=>{
+  b.style.display='none';
+});
+function pickAero(k){
+  const c=aeroConcepts[k];if(!c)return;
+  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('sel'));
+  const btn=document.getElementById('ac_'+k);if(btn)btn.classList.add('sel');
+  const d=document.getElementById('aeroDetail');
+  d.innerHTML=`<h4>${c.emoji} ${c.name}</h4><p>${c.desc}</p>`;
+  d.className='pdetail show';
+}
+
+// ===== QUIZ GAME =====
+const allQ=[
+  {cat:'Forces',q:'What are the four forces acting on a plane in flight?',opts:['Lift, drag, thrust, weight','Push, pull, spin, stop','Lift, speed, turn, gravity','Thrust, friction, pull, push'],ans:0,exp:'The four forces are lift (up), weight (down), thrust (forward), and drag (backward).'},
+  {cat:'Lift',q:'What is the special curved shape of a wing called?',opts:['Aerocurve','Aerofoil','Airblade','Streamline'],ans:0,exp:'The curved wing cross-section is called an aerofoil (airfoil in American English).'},
+  {cat:'Lift',q:'Why does air create lift over a curved wing?',opts:['The wing is very light','Engines blow air upward','Faster air above creates lower pressure','The wing spins rapidly'],ans:2,exp:'Air moves faster over the curved top, creating lower pressure above. Higher pressure below pushes the wing up — Bernoulli\'s principle!'},
+  {cat:'Parts',q:'Which part makes the plane roll (tilt) to turn?',opts:['Rudder','Flaps','Ailerons','Elevators'],ans:2,exp:'Ailerons on the wings move in opposite directions — one up, one down — to roll the plane into a turn.'},
+  {cat:'Parts',q:'What does the rudder control?',opts:['Pitch (nose up/down)','Yaw (nose left/right)','Speed','Lift'],ans:1,exp:'The rudder on the vertical tail fin controls yaw — swinging the nose left or right.'},
+  {cat:'Parts',q:'Why are flaps used during takeoff and landing?',opts:['To reduce noise','To create more lift at slow speed','To make the plane heavier','To cool the engines'],ans:1,exp:'Flaps increase wing area and curve, generating more lift at the slower speeds needed for takeoff and landing.'},
+  {cat:'Science',q:'Which principle explains how wing shape creates lift?',opts:['Archimedes\' principle','Bernoulli\'s principle','Hooke\'s law','Ohm\'s law'],ans:1,exp:'Bernoulli\'s principle: faster-moving air has lower pressure. The curved wing top makes air go faster, creating low pressure above.'},
+  {cat:'Parts',q:'What is the main body of the aeroplane called?',opts:['Hull','Fuselage','Chassis','Airframe'],ans:1,exp:'The fuselage is the main tube-shaped body that holds passengers and cargo.'},
+  {cat:'Forces',q:'For a plane to fly level, which forces must be equal?',opts:['Thrust and lift','Drag and weight','Lift and weight','All four must be equal'],ans:2,exp:'Lift must equal weight for level flight. Thrust must equal drag for constant speed.'},
+  {cat:'Forces',q:'What force pushes an aeroplane forward?',opts:['Lift','Drag','Thrust','Weight'],ans:2,exp:'Thrust from the engines pushes the plane forward through the air.'},
+  {cat:'Science',q:'What happens if the angle of attack is too steep?',opts:['The plane goes faster','The wing stalls and loses lift','The engines shut off','Nothing happens'],ans:1,exp:'Too steep an angle breaks the smooth airflow over the wing. The air separates and lift drops dramatically — this is called a stall.'},
+  {cat:'Parts',q:'Where is the elevator on a plane?',opts:['On the wing tips','On the vertical tail','On the horizontal tail','Under the fuselage'],ans:2,exp:'Elevators are on the horizontal stabiliser at the tail, controlling pitch (nose up/down).'},
+  {cat:'Facts',q:'How long was the Wright Brothers\' first flight?',opts:['12 seconds','2 minutes','30 seconds','5 minutes'],ans:0,exp:'The first powered flight on 17 December 1903 lasted just 12 seconds, covering 37 metres!'},
+  {cat:'Facts',q:'What are the curved tips on modern wings called?',opts:['Flaperons','Slats','Winglets','Spoilers'],ans:2,exp:'Winglets reduce drag by preventing air from swirling around the wingtip. They save up to 6% fuel!'},
+  {cat:'Science',q:'Newton\'s Third Law says every action has an equal and opposite...?',opts:['Force','Reaction','Push','Drag'],ans:1,exp:'Every action has an equal and opposite reaction. Wings push air down; the air pushes wings up!'},
+  {cat:'Forces',q:'What is drag?',opts:['Forward push from engines','Air resistance slowing the plane','Downward pull of gravity','Upward force from wings'],ans:1,exp:'Drag is the air resistance force that opposes the plane\'s forward motion.'},
+  {cat:'Facts',q:'Roughly how fast does a Boeing 747 cruise?',opts:['500 km/h','750 km/h','920 km/h','1,200 km/h'],ans:2,exp:'A Boeing 747 cruises at about 920 km/h (Mach 0.85) at an altitude of around 10,700 metres.'},
+  {cat:'Parts',q:'What do jet engines do to air?',opts:['Cool and release it','Compress, heat and blast it backward','Spin it in circles','Filter and clean it'],ans:1,exp:'Jet engines suck air in, compress it, mix with fuel, ignite it, and blast hot gases out the back to create thrust.'},
+];
+
+// ===== PILOT TRAINING ACADEMY =====
+let acPhase,acScore,acTimer,acInterval,acName;
+let acQuizCorrect,acQuizTotal,acP2Score,acP3Score;
+const PHASE_TIMES=[15,15,12];
+const QUIZ_MAX=10;
+
+function startAcademy(){
+  const inp=document.getElementById('playerName');
+  acName=inp.value.trim();
+  if(!acName){inp.style.borderColor='var(--red)';inp.focus();return}
+  // Check for duplicate name
+  const existing=getCachedScores();
+  if(existing.some(s=>s.name.toLowerCase()===acName.toLowerCase())){
+    inp.style.borderColor='var(--red)';
+    // Show error message
+    let err=document.getElementById('nameError');
+    if(!err){err=document.createElement('div');err.id='nameError';inp.parentNode.insertBefore(err,inp.nextSibling)}
+    err.style.cssText='color:var(--red);font-size:12px;margin-top:6px;font-weight:600';
+    err.textContent='That name is taken! Choose a different one.';
+    inp.focus();inp.select();
+    return;
+  }
+  // Clear any error
+  const err=document.getElementById('nameError');if(err)err.remove();
+  inp.style.borderColor='';
+  acScore=0;acQuizCorrect=0;acQuizTotal=0;acP2Score=0;acP3Score=0;p2Pts=0;p3SecsInAir=0;p3Landed=false;
+  document.getElementById('gameStart').style.display='none';
+  document.getElementById('gameResults').style.display='none';
+  document.getElementById('gamePlay').style.display='block';
+  startPhase(0);
+}
+
+function startPhase(p){
+  acPhase=p;acTimer=PHASE_TIMES[p];
+  updateAcHUD();
+  const titles=['Phase 1: Quick fire quiz','Phase 2: Steady flight','Phase 3: Safe landing'];
+  const instrs=[
+    'Answer up to 10 questions — faster = more points!',
+    'Use UP/DOWN arrows to keep the plane in the GREEN zone. +2 pts per second in green!',
+    'Use UP to slow, DOWN to speed up. +1 pt per second airborne. Land between 10-12 sec for +30 bonus!'
+  ];
+  const details=[
+    '',
+    'Plane starts on the ground. Fly up into the green zone and hold it steady. Turbulence will push you around!',
+    'Plane starts high up. The engine is dead — glide down and time your landing perfectly. Land between 10 and 12 seconds for a huge 30-point bonus!'
+  ];
+  document.getElementById('phaseTitle').textContent=titles[p];
+  document.getElementById('phaseInstr').textContent='';
+  document.getElementById('qContainer').innerHTML='';
+  document.getElementById('missionSim').style.display='none';
+
+  if(p===0){
+    // Quiz starts immediately
+    document.getElementById('phaseInstr').textContent=instrs[p];
+    clearInterval(acInterval);
+    acInterval=setInterval(()=>{acTimer--;updateAcHUD();if(acTimer<=0){clearInterval(acInterval);onPhaseEnd()}},1000);
+    startQuizPhase();
+  }else{
+    // Phases 2 & 3: show ready screen with instructions, wait for SPACE or tap
+    document.getElementById('qContainer').innerHTML=
+      '<div style="text-align:center;padding:24px 16px;cursor:pointer" id="phaseReady">'+
+      '<div style="font-size:36px;margin-bottom:8px">'+(p===1?'&#9992;':'&#128747;')+'</div>'+
+      '<div style="font-size:16px;font-weight:700;margin-bottom:6px">'+titles[p]+'</div>'+
+      '<div style="font-size:13px;color:var(--txt2);margin-bottom:4px">'+instrs[p]+'</div>'+
+      '<div style="font-size:12px;color:var(--txt3);margin-bottom:16px">'+details[p]+'</div>'+
+      '<div style="font-size:14px;font-weight:700;color:var(--accent);animation:fadeIn .5s">Press SPACE or tap here to start</div>'+
+      '</div>';
+    // Wait for space or click
+    let phaseStarted=false;
+    function launchPhase(){
+      if(phaseStarted)return;
+      phaseStarted=true;
+      document.removeEventListener('keydown',onSpace);
+      const ready=document.getElementById('phaseReady');
+      if(ready)ready.removeEventListener('click',launchPhase);
+      document.getElementById('phaseInstr').textContent=instrs[p];
+      document.getElementById('qContainer').innerHTML='';
+      clearInterval(acInterval);
+      acInterval=setInterval(()=>{acTimer--;updateAcHUD();if(acTimer<=0){clearInterval(acInterval);onPhaseEnd()}},1000);
+      if(p===1)startSteadyPhase();
+      else startLandingPhase();
+    }
+    function onSpace(e){
+      if(e.code==='Space'){e.preventDefault();launchPhase()}
+    }
+    document.addEventListener('keydown',onSpace);
+    document.getElementById('phaseReady').addEventListener('click',launchPhase);
+  }
+}
+
+function updateAcHUD(){
+  document.getElementById('hPhase').textContent=(acPhase+1)+'/3';
+  document.getElementById('hTimer').textContent=acTimer;
+  // Show live total including current phase's in-progress points
+  let liveScore=acScore||0;
+  if(acPhase===1)liveScore+=(p2Pts||0);
+  if(acPhase===2&&!p3Landed)liveScore+=(p3SecsInAir||0);
+  document.getElementById('hScore').textContent=liveScore;
+  const pct=acTimer/PHASE_TIMES[acPhase]*100;
+  document.getElementById('timerFill').style.width=pct+'%';
+  const tf=document.getElementById('timerFill');
+  tf.style.background=acTimer<=3?'var(--red)':acTimer<=5?'linear-gradient(90deg,var(--accent),var(--red))':'linear-gradient(90deg,var(--green),var(--accent2))';
+  document.getElementById('hTimer').style.color=acTimer<=3?'var(--red)':acTimer<=5?'var(--accent)':'var(--accent2)';
+}
+
+// --- PHASE 1: QUIZ (max 10 questions, advance early if done) ---
+let qPool,qIdx,qMax;
+function startQuizPhase(){
+  qPool=[...allQ].sort(()=>Math.random()-.5);qIdx=0;qMax=Math.min(QUIZ_MAX,qPool.length);
+  showAcQ();
+}
+function showAcQ(){
+  if(acTimer<=0||acQuizTotal>=qMax){clearInterval(acInterval);onPhaseEnd();return}
+  const q=qPool[qIdx%qPool.length];acQuizTotal++;
+  const L=['A','B','C','D'];
+  document.getElementById('qContainer').innerHTML=
+    '<div style="font-size:11px;color:var(--txt3);text-align:center;margin-bottom:6px">Question '+acQuizTotal+'/'+qMax+'</div>'+
+    '<div class="qcard" style="animation:fadeIn .15s"><div class="qcat">'+q.cat+'</div><div class="qtxt" style="font-size:16px">'+q.q+'</div><div class="qopts">'+
+    q.opts.map((o,j)=>'<div class="qo" onclick="acAns('+j+')" id="aq'+j+'"><span class="let">'+L[j]+'</span>'+o+'</div>').join('')+'</div></div>';
+}
+function acAns(oi){
+  if(acTimer<=0)return;
+  const q=qPool[qIdx%qPool.length];
+  document.querySelectorAll('.qo').forEach(o=>o.classList.add('dis'));
+  if(oi===q.ans){
+    document.getElementById('aq'+oi).classList.add('ok');
+    const pts=5+Math.min(3,Math.round(acTimer/15*3));
+    acScore+=pts;acQuizCorrect++;
+    document.getElementById('hScore').style.transform='scale(1.3)';
+    setTimeout(()=>document.getElementById('hScore').style.transform='',200);
+  }else{
+    document.getElementById('aq'+oi).classList.add('no');
+    document.getElementById('aq'+q.ans).classList.add('reveal');document.getElementById('aq'+q.ans).classList.remove('dis');
+  }
+  updateAcHUD();
+  qIdx++;
+  setTimeout(()=>{if(acQuizTotal>=qMax){clearInterval(acInterval);onPhaseEnd()}else if(acTimer>0)showAcQ()},500);
+}
+
+// --- PHASE 2: STEADY FLIGHT (keep plane in green zone) ---
+let p2Y=0,p2Vel=0,p2Keys,p2Frame,p2Pts=0,p2TickCount=0;
+function startSteadyPhase(){
+  document.getElementById('missionSim').style.display='block';
+  document.getElementById('mGround').style.display='none';
+  const zones=document.getElementById('mZones');
+  zones.style.display='block';
+  // 5 zones: red-amber-GREEN-amber-red (green is in the middle ~96-144px)
+  zones.innerHTML=
+    '<div style="position:absolute;top:0;left:0;right:0;height:48px;background:rgba(248,113,113,.1);border-bottom:1px dashed rgba(248,113,113,.25)"><div style="position:absolute;left:6px;top:16px;font-size:8px;color:rgba(248,113,113,.5)">TOO HIGH</div></div>'+
+    '<div style="position:absolute;top:48px;left:0;right:0;height:48px;background:rgba(247,201,72,.06);border-bottom:1px dashed rgba(247,201,72,.2)"></div>'+
+    '<div style="position:absolute;top:96px;left:0;right:0;height:48px;background:rgba(52,211,153,.1);border-top:2px solid rgba(52,211,153,.4);border-bottom:2px solid rgba(52,211,153,.4)"><div style="position:absolute;right:6px;top:14px;font-size:9px;color:rgba(52,211,153,.7);font-weight:700">GREEN ZONE</div></div>'+
+    '<div style="position:absolute;top:144px;left:0;right:0;height:48px;background:rgba(247,201,72,.06);border-bottom:1px dashed rgba(247,201,72,.2)"></div>'+
+    '<div style="position:absolute;top:192px;left:0;right:0;height:48px;background:rgba(248,113,113,.1)"><div style="position:absolute;left:6px;top:16px;font-size:8px;color:rgba(248,113,113,.5)">TOO LOW</div></div>';
+
+  // START FROM BOTTOM (ground level)
+  p2Y=220;p2Vel=0;p2Pts=0;p2TickCount=0;
+  p2Keys={up:false,down:false};
+  document.getElementById('mPlane').style.top=p2Y+'px';
+  document.getElementById('mPoints').textContent='+0';
+  let p2SecTimer=0; // counts frames for 1-second intervals
+  let p2GreenSecs=0; // seconds spent in green zone
+
+  const kd=e=>{if(e.key==='ArrowUp'){p2Keys.up=true;e.preventDefault()}if(e.key==='ArrowDown'){p2Keys.down=true;e.preventDefault()}};
+  const ku=e=>{if(e.key==='ArrowUp')p2Keys.up=false;if(e.key==='ArrowDown')p2Keys.down=false};
+  document.addEventListener('keydown',kd);document.addEventListener('keyup',ku);
+  window._p2Cleanup=()=>{document.removeEventListener('keydown',kd);document.removeEventListener('keyup',ku);cancelAnimationFrame(p2Frame)};
+
+  let turbulence=0;
+  function tick(){
+    p2TickCount++;
+    p2SecTimer++;
+
+    // Turbulence — random pushes, gets stronger over time
+    if(p2TickCount%50===0)turbulence=(Math.random()-0.5)*0.5*(1+p2TickCount/400);
+    turbulence*=0.97;
+
+    // Player input — UP moves plane up (toward lower Y), DOWN moves down
+    if(p2Keys.up)p2Vel-=0.1;
+    if(p2Keys.down)p2Vel+=0.1;
+
+    // Gravity always pulls down gently (plane wants to sink)
+    p2Vel+=0.02;
+
+    // Turbulence
+    p2Vel+=turbulence*0.03;
+
+    // Damping (air resistance)
+    p2Vel*=0.94;
+
+    p2Y+=p2Vel;
+    p2Y=Math.max(5,Math.min(235,p2Y));
+
+    document.getElementById('mPlane').style.top=Math.round(p2Y)+'px';
+    const tilt=Math.round(Math.max(-12,Math.min(12,p2Vel*12)));
+    document.getElementById('mPlane').style.transform='translateX(-50%) rotate('+tilt+'deg)';
+
+    // Score: 2 points per full second spent in green zone (max 30)
+    if(p2SecTimer>=60){
+      p2SecTimer=0;
+      if(p2Y>=96&&p2Y<=144){
+        p2GreenSecs++;
+        p2Pts=p2GreenSecs*2;
+        document.getElementById('mPoints').textContent='+'+p2Pts;
+        document.getElementById('mPoints').style.color='var(--green)';
+      }
+      // Live preview in HUD handled by updateAcHUD
+    }
+
+    const inGreen=p2Y>=96&&p2Y<=144;
+    const inAmber=(p2Y>=48&&p2Y<96)||(p2Y>144&&p2Y<=192);
+    const zone=inGreen?'GREEN — +2 pts/sec!':inAmber?'AMBER — get to green!':p2Y<48?'RED — too high!':'RED — too low!';
+    const zColor=inGreen?'rgba(52,211,153,.9)':inAmber?'rgba(247,201,72,.9)':'rgba(248,113,113,.9)';
+    document.getElementById('mHint').textContent=zone+'  ('+p2GreenSecs+'s in green = '+p2Pts+' pts)';
+    document.getElementById('mHint').style.color=zColor;
+    document.getElementById('mAlt').textContent=Math.round(10000-(p2Y/240*10000))+' ft';
+
+    if(acTimer>0)p2Frame=requestAnimationFrame(tick);
+    // Score is added in onPhaseEnd
+  }
+  p2Frame=requestAnimationFrame(tick);
+}
+
+// --- PHASE 3: SAFE LANDING (descend gradually, land gently) ---
+let p3Y=0,p3Speed=0,p3Keys,p3Frame,p3Landed=false,p3Crashed=false,p3SecsInAir=0;
+function startLandingPhase(){
+  if(window._p2Cleanup)window._p2Cleanup();
+  document.getElementById('missionSim').style.display='block';
+  document.getElementById('mZones').style.display='none';
+  document.getElementById('mGround').style.display='block';
+  document.getElementById('mHint').style.color='';
+
+  p3Y=8;p3Speed=0;p3Landed=false;p3Crashed=false;
+  p3Keys={up:false,down:false};
+  document.getElementById('mPlane').style.top=p3Y+'px';
+  document.getElementById('mPlane').style.transform='translateX(-50%)';
+  document.getElementById('mAlt').textContent='9500 ft';
+  document.getElementById('mPoints').textContent='+0';
+
+  const kd=e=>{if(e.key==='ArrowUp'){p3Keys.up=true;e.preventDefault()}if(e.key==='ArrowDown'){p3Keys.down=true;e.preventDefault()}};
+  const ku=e=>{if(e.key==='ArrowUp')p3Keys.up=false;if(e.key==='ArrowDown')p3Keys.down=false};
+  document.addEventListener('keydown',kd);document.addEventListener('keyup',ku);
+  window._p3Cleanup=()=>{document.removeEventListener('keydown',kd);document.removeEventListener('keyup',ku);cancelAnimationFrame(p3Frame)};
+
+  let frameCount=0;
+  p3SecsInAir=0;
+  let p3SecFrames=0;
+  const P3_TOTAL=PHASE_TIMES[2];
+
+  function tick(){
+    frameCount++;
+    p3SecFrames++;
+
+    // Count seconds in air (1 point each)
+    if(p3SecFrames>=60&&!p3Landed&&!p3Crashed){
+      p3SecFrames=0;
+      p3SecsInAir++;
+      document.getElementById('mPoints').textContent='+'+p3SecsInAir;
+      document.getElementById('mPoints').style.color='var(--blue)';
+      // Live preview in HUD handled by updateAcHUD
+    }
+
+    // Gravity — starts very gentle, slowly increases
+    // Design: with constant Up holding, player should be able to stay up ~10-11 secs
+    // Without pressing anything, plane reaches ground in ~6-7 secs
+    const gravityBase=0.0008;
+    const gravityRamp=frameCount*0.0000008; // very slow ramp
+    p3Speed+=gravityBase+gravityRamp;
+
+    // Player controls — Up is powerful enough to counteract gravity
+    if(p3Keys.up)p3Speed=Math.max(-0.01,p3Speed-0.0025);
+    if(p3Keys.down)p3Speed+=0.001;
+
+    // Damping at high speed
+    p3Speed*=0.995;
+    p3Speed=Math.max(0,Math.min(0.5,p3Speed));
+    p3Y+=p3Speed;
+
+    // Visuals
+    const el=document.getElementById('mPlane');
+    el.style.top=Math.round(Math.min(210,p3Y))+'px';
+    const tilt=p3Keys.up?-6:p3Keys.down?8:p3Speed*10;
+    el.style.transform='translateX(-50%) rotate('+Math.round(Math.max(-10,Math.min(12,tilt)))+'deg)';
+
+    const alt=Math.max(0,Math.round((210-p3Y)/210*9000));
+    document.getElementById('mAlt').textContent=alt+' ft';
+
+    // Time in air display
+    const elapsed=P3_TOTAL-acTimer;
+    const timeDisplay=elapsed+'.'+Math.round(p3SecFrames/6)+'s';
+
+    // Speed indicator
+    const spdDisplay=Math.round(p3Speed*800);
+    const spdColor=spdDisplay<100?'var(--green)':spdDisplay<200?'var(--accent2)':'var(--red)';
+    const spdLabel=spdDisplay<100?'GENTLE':spdDisplay<200?'OK':'FAST!';
+    const bonusHint=elapsed>=9&&elapsed<=12?' — LAND NOW for +30 bonus!':'';
+    document.getElementById('mHint').textContent='Time: '+timeDisplay+'  Speed: '+spdDisplay+' ('+spdLabel+')'+bonusHint;
+    document.getElementById('mHint').style.color=elapsed>=10&&elapsed<=12?'var(--accent2)':spdColor;
+
+    // Landing check
+    if(p3Y>=208&&!p3Landed&&!p3Crashed){
+      p3Landed=true;
+      const landedAt=P3_TOTAL-acTimer;
+      const bonusLand=(landedAt>=10&&landedAt<=12)?30:0;
+      acP3Score=p3SecsInAir+bonusLand;
+      // acScore was already showing airtime live, so only add the full P3 score once here
+      acScore+=acP3Score;updateAcHUD();
+      const bonusText=bonusLand>0?' (+30 bonus!)':'';
+      document.getElementById('mHint').textContent='LANDED at '+landedAt+'s! +'+acP3Score+' pts'+bonusText;
+      document.getElementById('mHint').style.color=bonusLand>0?'var(--green)':'var(--accent2)';
+      document.getElementById('mHint').style.fontSize='13px';
+      document.getElementById('mPoints').textContent='+'+acP3Score;
+      document.getElementById('mPoints').style.color=bonusLand>0?'var(--green)':'var(--accent2)';
+    }
+
+    if(acTimer>0&&!p3Landed)p3Frame=requestAnimationFrame(tick);
+    // If time runs out without landing, score is added in onPhaseEnd
+  }
+  p3Frame=requestAnimationFrame(tick);
+}
+
+// --- TRANSITIONS ---
+function onPhaseEnd(){
+  if(window._p2Cleanup)window._p2Cleanup();
+  if(window._p3Cleanup)window._p3Cleanup();
+
+  // Add scores for the phase that just ended
+  if(acPhase===1){
+    // Phase 2 ended — add green zone points
+    acP2Score=p2Pts;
+    acScore+=acP2Score;
+    updateAcHUD();
+  }
+  if(acPhase===2&&!p3Landed){
+    // Phase 3 time ran out without landing — add airtime only
+    acP3Score=p3SecsInAir;
+    acScore+=acP3Score;
+    updateAcHUD();
+  }
+
+  if(acPhase<2){
+    document.getElementById('missionSim').style.display='none';
+    document.getElementById('qContainer').innerHTML='<div style="text-align:center;padding:20px;font-size:18px;font-weight:700;animation:fadeIn .3s">'+
+      (acPhase===0?'&#9992; Phase 2: Keep it steady!':'&#128747; Phase 3: Land safely!')+'</div>';
+    document.getElementById('phaseInstr').textContent='';
+    setTimeout(()=>startPhase(acPhase+1),1000);
+  }else{
+    finishAcademy();
+  }
+}
+
+function finishAcademy(){
+  if(window._p3Cleanup)window._p3Cleanup();
+  clearInterval(acInterval);
+  document.getElementById('gamePlay').style.display='none';
+  document.getElementById('gameResults').style.display='block';
+
+  const rank=acScore>=100?'Gold Wings':acScore>=60?'Silver Wings':acScore>=30?'Bronze Wings':'';
+  const noRank=!rank;
+  const rankColor=acScore>=100?'#ffd700':acScore>=60?'#c0c0c0':acScore>=30?'#cd7f32':'';
+  const msg=acScore>=100?'Outstanding pilot! Gold Wings!':acScore>=60?'Great flying! Silver Wings!':acScore>=30?'Solid effort — Bronze Wings!':'Nice try! Better luck next time!';
+
+  document.getElementById('gameResults').innerHTML=
+    '<div class="res">'+
+    '<div style="font-size:48px;margin-bottom:8px">'+(noRank?'&#9992;':acScore>=100?'&#127941;':acScore>=60?'&#129351;':'&#129352;')+'</div>'+
+    (noRank?'':'<div style="font-size:16px;font-weight:700;color:'+rankColor+';letter-spacing:2px;text-transform:uppercase;margin-bottom:4px">'+rank+'</div>')+
+    '<div class="res-score">'+acScore+'</div>'+
+    '<div class="res-of">out of 150 points</div>'+
+    '<div class="res-msg" style="margin:10px 0 12px;font-size:14px">'+msg+'</div>'+
+    '<div style="display:flex;gap:6px;justify-content:center;margin-bottom:14px;font-size:11px">'+
+    '<span style="padding:4px 12px;border-radius:6px;font-weight:700;background:'+(acScore>=30?'#cd7f32':'var(--card2)')+';color:'+(acScore>=30?'#fff':'var(--txt3)')+'">'+(acScore>=30?'&#10003; ':'')+'Bronze</span>'+
+    '<span style="padding:4px 12px;border-radius:6px;font-weight:700;background:'+(acScore>=60?'#c0c0c0':'var(--card2)')+';color:'+(acScore>=60?'#333':'var(--txt3)')+'">'+(acScore>=60?'&#10003; ':'')+'Silver</span>'+
+    '<span style="padding:4px 12px;border-radius:6px;font-weight:700;background:'+(acScore>=100?'#ffd700':'var(--card2)')+';color:'+(acScore>=100?'#333':'var(--txt3)')+'">'+(acScore>=100?'&#10003; ':'')+'Gold</span>'+
+    '</div>'+
+    '<div class="res-grid">'+
+    '<div class="res-item"><div class="rn" style="color:var(--green)">'+acQuizCorrect+'/'+acQuizTotal+'</div><div class="rl">Quiz</div></div>'+
+    '<div class="res-item"><div class="rn" style="color:var(--blue)">'+acP2Score+'</div><div class="rl">Steady</div></div>'+
+    '<div class="res-item"><div class="rn" style="color:var(--accent)">'+acP3Score+'</div><div class="rl">Landing</div></div>'+
+    '</div>'+
+    '<div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">'+
+    '<button class="btn btn1" onclick="nextPlayer()">Next player &#9992;</button>'+
+    '<button class="btn btn2" onclick="go(5)">Leaderboard &#127942;</button></div></div>';
+
+  saveScore(acName,acScore,acQuizCorrect,acQuizTotal,rank);
+  renderLB(); // update leaderboard immediately
+}
+
+function nextPlayer(){
+  document.getElementById('gameStart').style.display='block';
+  document.getElementById('gamePlay').style.display='none';
+  document.getElementById('gameResults').style.display='none';
+  document.getElementById('playerName').value='';
+  document.getElementById('playerName').focus();
+}
+
+// ===== LEADERBOARD (Google Sheets backend) =====
+const SHEET_API='https://script.google.com/macros/s/AKfycbwT4rgMv7-Oap_TCXjVTkmNR8iLWGkyzc1NPNcB1FqbqqO6BiQ3Gx_4N2uaWhg9Zb09/exec';
+
+function getCachedScores(){
+  try{return JSON.parse(localStorage.getItem('flight_scores')||'[]')}catch(e){return[]}
+}
+function cacheScores(scores){
+  try{localStorage.setItem('flight_scores',JSON.stringify(scores))}catch(e){}
+}
+
+async function fetchScores(){
+  try{
+    const r=await fetch(SHEET_API);
+    if(!r.ok)throw new Error('Sheet API error');
+    const scores=await r.json();
+    scores.sort((a,b)=>b.score-a.score);
+    cacheScores(scores);
+    return scores;
+  }catch(e){
+    console.warn('Fetch scores failed, using cache:',e);
+    return getCachedScores();
+  }
+}
+
+function saveScore(name,score,correct,total,rank){
+  const entry={name,score,correct,total,rank:rank||'',date:new Date().toLocaleDateString('en-GB')};
+  // Save to local cache immediately for instant feedback
+  const cached=getCachedScores();
+  cached.push(entry);
+  cached.sort((a,b)=>b.score-a.score);
+  cacheScores(cached);
+  // POST to Google Sheets in background
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify(entry)}).catch(e=>console.warn('Sheet POST failed:',e));
+}
+
+function renderLBFromData(scores){
+  const card=document.getElementById('lbCard');
+  if(!scores.length){card.innerHTML='<div class="lb-empty">No scores yet! Be the first to take the Pilot Academy.</div>';return}
+  const medals=['\u{1F947}','\u{1F948}','\u{1F949}'];
+  const today=new Date().toLocaleDateString('en-GB');
+  const todayScores=scores.filter(s=>s.date===today);
+  const displayScores=todayScores.length?todayScores:scores;
+  const label=todayScores.length?'Today\'s scores':'All-time scores';
+  const editing=window._lbEditMode;
+  let html=`<div style="font-size:12px;color:var(--txt3);margin-bottom:8px;font-weight:600">${label} &mdash; ${displayScores.length} ${displayScores.length===1?'entry':'entries'}${editing?' <span style="color:var(--red)">(editing)</span>':''}</div>`;
+  html+=`<table><tr>${editing?'<th style="width:36px"></th>':''}<th style="width:40px">#</th><th>Pilot</th><th style="text-align:right">Score</th><th style="text-align:right">Rank</th><th style="text-align:right;width:80px">Date</th></tr>`;
+  displayScores.forEach((s,i)=>{
+    const medal=i<3?`<span class="medal">${medals[i]}</span>`:`<span class="rank">${i+1}</span>`;
+    const rk=s.rank||'';
+    const rkIcon=rk==='Gold Wings'?'\u{1F3C6} ':rk==='Silver Wings'?'\u{1F948} ':rk==='Bronze Wings'?'\u{1F949} ':'';
+    const delBtn=editing?`<td><button onclick="deleteEntry('${esc(s.name)}')" style="background:var(--red);color:#fff;border:none;border-radius:6px;padding:2px 8px;font-size:11px;cursor:pointer">\u2715</button></td>`:'';
+    html+=`<tr>${delBtn}<td>${medal}</td><td style="font-weight:600">${esc(s.name)}</td><td style="text-align:right" class="sc">${s.score}</td><td style="text-align:right;font-size:11px;color:var(--txt3)">${rkIcon}${rk}</td><td style="text-align:right" class="pct">${s.date||'\u2014'}</td></tr>`;
+  });
+  html+=`</table>`;
+  card.innerHTML=html;
+}
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+
+function renderLB(){
+  // Show cached data instantly
+  renderLBFromData(getCachedScores());
+  // Then fetch fresh data from Sheets and re-render
+  fetchScores().then(scores=>renderLBFromData(scores));
+}
+
+function refreshLB(){
+  const card=document.getElementById('lbCard');
+  card.innerHTML='<div class="lb-empty" style="opacity:.6">Loading scores...</div>';
+  fetchScores().then(scores=>renderLBFromData(scores));
+}
+
+function exportLB(){
+  const scores=getCachedScores();
+  if(!scores.length){alert('No scores to copy!');return}
+  const today=new Date().toLocaleDateString('en-GB');
+  let text=`\u2708\uFE0F PILOT TRAINING ACADEMY LEADERBOARD \u2014 ${today}\n${'\u2550'.repeat(44)}\n`;
+  const medals=['\u{1F947}','\u{1F948}','\u{1F949}'];
+  scores.forEach((s,i)=>{
+    const m=i<3?medals[i]:`#${i+1}`;
+    text+=`${m} ${s.name} \u2014 ${s.score} pts (${s.correct}/${s.total} correct)\n`;
+  });
+  text+=`${'\u2550'.repeat(44)}\nGenerated from aaravb.com`;
+  navigator.clipboard.writeText(text).then(()=>alert('Leaderboard copied to clipboard! Paste it anywhere to share.')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();alert('Copied!');
+  });
+}
+function deleteEntry(name){
+  if(!confirm('Delete entry for "'+name+'"? This cannot be undone.'))return;
+  let scores=getCachedScores();
+  scores=scores.filter(s=>s.name!==name);
+  cacheScores(scores);
+  renderLBFromData(scores);
+  if(!scores.length)hideAdminButtons();
+  // Delete from Google Sheet
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'delete',name:name})}).catch(e=>console.warn('Sheet DELETE failed:',e));
+}
+
+function toggleEditMode(){
+  window._lbEditMode=!window._lbEditMode;
+  renderLBFromData(getCachedScores());
+  if(!window._lbEditMode)hideAdminButtons();
+}
+
+function confirmReset(){
+  if(!confirm('Clear ALL scores? This cannot be undone.'))return;
+  if(!confirm('Are you really sure? Every entry will be permanently deleted.'))return;
+  localStorage.removeItem('flight_scores');
+  window._lbEditMode=false;
+  renderLBFromData([]);
+  hideAdminButtons();
+  // Reset Google Sheet
+  fetch(SHEET_API,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'reset'})}).catch(e=>console.warn('Sheet RESET failed:',e));
+}
+
+function hideAdminButtons(){
+  window._lbEditMode=false;
+  document.querySelectorAll('.admin-btn').forEach(b=>b.style.display='none');
+}
+
+// Init leaderboard on load
+try{renderLB()}catch(e){console.log('LB init skipped')}
+
+// ===== SPACE KEY TO START GAME =====
+document.addEventListener('keydown',function(e){
+  if(e.code==='Space'&&document.getElementById('gameStart')&&document.getElementById('gameStart').style.display!=='none'&&document.getElementById('gameStart').offsetParent!==null){
+    e.preventDefault();
+    const inp=document.getElementById('playerName');
+    if(!inp.value.trim()){
+      // Generate unique random name
+      const existing=getCachedScores().map(s=>s.name.toLowerCase());
+      let name;
+      do{name='Pilot '+Math.floor(Math.random()*900+100)}while(existing.includes(name.toLowerCase()));
+      inp.value=name;
+    }
+    startAcademy();
+  }
+});
+
+// ===== SECRET ADMIN =====
+(function(){
+  let buf='';
+  document.addEventListener('keydown',function(e){
+    buf+=e.key.toLowerCase();
+    if(buf.length>15)buf=buf.slice(-15);
+    if(buf.includes('resetall123')){
+      buf='';
+      document.querySelectorAll('.admin-btn').forEach(b=>b.style.display='inline-flex');
+    }
+  });
+})();
+
+// ===== THEME TOGGLE =====
+function toggleTheme(){
+  const html=document.documentElement;
+  const isDark=html.getAttribute('data-theme')==='dark';
+  if(isDark){
+    html.removeAttribute('data-theme');
+    html.style.colorScheme='light';
+    document.getElementById('themeBtn').innerHTML='&#9790;';
+  }else{
+    html.setAttribute('data-theme','dark');
+    html.style.colorScheme='dark';
+    document.getElementById('themeBtn').innerHTML='&#9728;';
+  }
+}
+// Support data-theme override
+const style=document.createElement('style');
+style.textContent=`[data-theme="dark"]{--bg:#0b1120;--card:#131c2e;--card2:#1a2640;--border:rgba(255,255,255,0.08);--accent:#5b9bd5;--accent2:#e8b84a;--green:#34d399;--blue:#60a5fa;--red:#f87171;--txt:#e2e8f0;--txt2:#94a3b8;--txt3:#64748b;--school-navy:#5b9bd5;--school-gold:#e8b84a}[data-theme="dark"] .nav{background:rgba(11,17,32,.92)}[data-theme="dark"] .nbtn.on{background:var(--school-gold);color:#0b1120;box-shadow:0 2px 20px rgba(200,152,46,.25)}`;
+document.head.appendChild(style);
+// Auto-detect preference
+if(window.matchMedia('(prefers-color-scheme:dark)').matches){
+  document.documentElement.setAttribute('data-theme','dark');
+  document.documentElement.style.colorScheme='dark';
+}
+
+</script>
+</body>
+</html>
